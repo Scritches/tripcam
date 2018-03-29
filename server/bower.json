@@ -1,0 +1,23 @@
+{
+  "name": "tripcam-server",
+  "description": "Server component to tripcam",
+  "main": "server.js",
+  "authors": [
+    "Scritches <dzscritches@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/Scritches/tripcam",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/static/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^4.0.0",
+    "jquery": "^3.3.1"
+  }
+}

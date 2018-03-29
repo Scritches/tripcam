@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1 Welcome to room #{roomid}
+  .camera
+    video#video(style='display:none') Video stream unavailable
+  canvas#record(style='display:none')
+  canvas#remote
+  br
+  span#fps
+  
+  script(src='/js/room.js')
