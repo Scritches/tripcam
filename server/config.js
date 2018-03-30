@@ -12,9 +12,19 @@ const config = function(root) {
       listenPort: 80
     },
 
+    wss: {
+      allowedOrigins: [
+          "https://localhost:8080"
+      ]
+    },
+
     express: {
       viewsPath: join(root, '/app/views'),
       staticPath: join(root, '/app/static')
+    },
+
+    rooms: {
+      activityTimeout: 5000
     }
   };
 };

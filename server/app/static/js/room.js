@@ -19,6 +19,31 @@ if (!HTMLCanvasElement.prototype.toBlob) {
 }
 
 
+function b64toBlob(b64Data, contentType, sliceSize) {
+  contentType = contentType || '';
+  sliceSize = sliceSize || 512;
+
+  var byteCharacters = atob(b64Data);
+  var byteArrays = [];
+
+  for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+    var byteNumbers = new Array(slice.length);
+    for (var i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    var byteArray = new Uint8Array(byteNumbers);
+
+    byteArrays.push(byteArray);
+  }
+
+  var blob = new Blob(byteArrays, {type: contentType});
+  return blob;
+}
+
+
 // This is all temporary code, just to test displaying local video and recording frames.
 // So this is all ugly, largely lifted from other areas and hacked at until I got it working.
 // Please don't judge me yet. >.<
@@ -69,7 +94,7 @@ function emitpicture(){
     img.src = URL.createObjectURL(blob);
 
 
-  }, 'image/jpeg', 0.5);
+  }, 'image/jpeg', 0.25);
 }
 
 var lastT = 0;
@@ -86,4 +111,35 @@ function loop() {
 
   //window.requestAnimationFrame(loop);
   window.setTimeout(loop, delayPerFrame);
+}
+
+
+
+var socket = new WebSocket('wss://24.88.118.234:8080/room/'+roomid, 'room-protocol');
+socket.onmessage = function(event) {
+  // assume string data is json
+  // assume binary data is camera data
+
+  if(typeof event.data === "string") {
+    console.log("STRING DATA");
+    var message = JSON.parse(event.data);
+    console.log(message);
+    handleIncomingMessage(message);
+  } else if (event.data instanceof Blob) {
+    console.log("BINARY DATA");
+  }
+}
+
+function handleIncomingMessage(message) {
+  if (message.messageType == 'hello') {
+    // This is the 'hello' packet from server. Contains the clientid for this client.
+    clientid = message.clientid;
+
+  }
+}
+
+
+
+function handleIncomingBinary(blob) {
+
 }

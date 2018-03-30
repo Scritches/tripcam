@@ -1,7 +1,7 @@
 {
   "name": "tripcam-server",
   "description": "Server component to tripcam",
-  "main": "server.js",
+  "main": "run.js",
   "authors": [
     "Scritches <dzscritches@gmail.com>"
   ],
