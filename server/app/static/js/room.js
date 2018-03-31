@@ -50,7 +50,6 @@ for(var i = 0; i < 5; i++) {
   remoteArray.push(remoteEntry);
 
   img.onload = (function() {
-    console.log("drawing to " + this.canvas.id);
     this.context.drawImage(this.image, 0, 0, camWidth, camHeight);
   }).bind(remoteEntry);
 
@@ -90,7 +89,7 @@ function emitpicture() {
   if (connected) {
     canvas.toBlob(function(blob) {
       socket.send(blob);
-    }, 'image/jpeg', 0.25);
+    }, 'image/jpeg', 0.5);
   }
 }
 
@@ -118,7 +117,7 @@ function loop() {
 
 
 
-var socket = new WebSocket('wss://24.88.118.234:8080/room/'+roomid, 'room-protocol');
+var socket = new WebSocket('wss://24.88.118.234/room/'+roomid, 'room-protocol');
 socket.binaryType = 'arraybuffer'
 socket.onmessage = function(event) {
   // assume string data is json
@@ -154,4 +153,7 @@ function handleIncomingBinary(arrayBuffer) {
     remoteId++;
   } while(cursor < arrayBuffer.byteLength);
 
+  for(; remoteId < 5; remoteId++) {
+    remoteArray[remoteId].context.clearRect(0, 0, camWidth, camHeight);
+  }
 }

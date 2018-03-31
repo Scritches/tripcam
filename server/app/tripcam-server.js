@@ -48,14 +48,15 @@ class TripcamServer {
       res.render('index');
     });
 
-    // Configure room routes
-    // Ensure room route is secure
-    app.get('/room/*', (req, res, next) => {
-      if (req.secure) { next(); }
-      else {
-        res.redirect('https://' + req.headers.host + ":" + config.https.listenPort + req.url);
-      }
-    });
+    // // Configure room routes
+    // // Ensure room route is secure
+    // app.get('/room/*', (req, res, next) => {
+    //   if (req.secure) { next(); }
+    //   else {
+    //     console.log("redirecting");
+    //     res.redirect('https://' + req.headers.host + ":" + config.https.listenPort + req.url);
+    //   }
+    // });
 
     //
     app.get('/room/:roomid', ((req, res) => {
@@ -78,15 +79,18 @@ class TripcamServer {
 
     wss.on('request', (req => {
       if(!config.wss.allowedOrigins.includes(req.origin)) {
-        console.log(req.origin);
+        console.log("rejecting wss: not allowed origin");
         req.reject();
         return;
       }
 
       if(!req.resource.startsWith('/room/')){
+        console.log("rejecting wss: wrong url");
         req.reject();
         return;
       }
+
+      console.log("accepting wss");
 
       var cn = req.accept('room-protocol', req.origin);
       var roomid = req.resource.slice(6);

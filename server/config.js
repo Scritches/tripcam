@@ -5,7 +5,7 @@ const config = function(root) {
     https: {
       keyPath: join(root, '/certs/server.key'),
       certPath: join(root, '/certs/server.crt'),
-      listenPort: 8080
+      listenPort: 443
     },
 
     http: {
@@ -14,8 +14,9 @@ const config = function(root) {
 
     wss: {
       allowedOrigins: [
-          "https://localhost:8080",
-          "https://24.88.118.234:8080"
+          "https://localhost",
+          "https://24.88.118.234",
+          "https://scritchface.cf"
       ]
     },
 
