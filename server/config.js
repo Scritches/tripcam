@@ -14,7 +14,8 @@ const config = function(root) {
 
     wss: {
       allowedOrigins: [
-          "https://localhost:8080"
+          "https://localhost:8080",
+          "https://24.88.118.234:8080"
       ]
     },
 
@@ -24,7 +25,8 @@ const config = function(root) {
     },
 
     rooms: {
-      activityTimeout: 5000
+      activityTimeout: 5000,
+      serverFps: 30
     }
   };
 };

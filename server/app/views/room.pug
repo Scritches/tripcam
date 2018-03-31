@@ -4,10 +4,12 @@ block content
   h1 Welcome to room #{roomid}
   .camera
     video#video(style='display:none') Video stream unavailable
-  canvas#record(style='display:none')
-  canvas#remote
-  br
-  span#fps
+  canvas#record(style='border: 1px solid')
+  canvas#remote0
+  canvas#remote1
+  canvas#remote2
+  canvas#remote3
+  canvas#remote4
 
   script roomid = "#{roomid}";
   script(src='/js/room.js')

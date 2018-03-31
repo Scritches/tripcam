@@ -1,6 +1,7 @@
 const readFileSync = require('fs').readFileSync,
       http = require('http'),
       https = require('https'),
+      async = require('async'),
       express = require('express'),
       websocket = require('websocket'),
       { Room, Rooms } = require('./rooms');
@@ -77,12 +78,13 @@ class TripcamServer {
 
     wss.on('request', (req => {
       if(!config.wss.allowedOrigins.includes(req.origin)) {
-        request.reject();
+        console.log(req.origin);
+        req.reject();
         return;
       }
 
       if(!req.resource.startsWith('/room/')){
-        request.reject();
+        req.reject();
         return;
       }
 
@@ -104,8 +106,31 @@ class TripcamServer {
     console.log("Now listening for HTTP connections on port " + this.config.http.listenPort);
   }
 
-  stop() {
-    
+  stop(done) {
+    async.parallel({
+      http: (function(cb) {
+        console.log("stopping http");
+        this.http.close(cb);
+      }).bind(this),
+
+      https: (function(cb) {
+        console.log("stopping https");
+        this.https.close(cb);
+      }).bind(this),
+
+      wss: (function(cb) {
+        setImmediate((function() {
+          console.log("stopping wss");
+          this.wss.shutDown();
+          cb();
+        }).bind(this));
+      }).bind(this)
+    }, (function(err, r) {
+      console.log("destroying rooms");
+      this.rooms.destroyAllRooms();
+      console.log("shutdown complete");
+      done();
+    }).bind(this));
   }
 }
 

@@ -19,114 +19,116 @@ if (!HTMLCanvasElement.prototype.toBlob) {
 }
 
 
-function b64toBlob(b64Data, contentType, sliceSize) {
-  contentType = contentType || '';
-  sliceSize = sliceSize || 512;
-
-  var byteCharacters = atob(b64Data);
-  var byteArrays = [];
-
-  for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-    var byteNumbers = new Array(slice.length);
-    for (var i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-
-    var byteArray = new Uint8Array(byteNumbers);
-
-    byteArrays.push(byteArray);
-  }
-
-  var blob = new Blob(byteArrays, {type: contentType});
-  return blob;
-}
-
-
 // This is all temporary code, just to test displaying local video and recording frames.
 // So this is all ugly, largely lifted from other areas and hacked at until I got it working.
 // Please don't judge me yet. >.<
 
-var desiredFps = 20;
+var desiredFps = 30;
 var delayPerFrame = 1000 / desiredFps;
 
 
 var video = document.getElementById('video');
 var canvas = document.getElementById('record');
-var remote = document.getElementById('remote');
-var fps = document.getElementById('fps');
+
+var camWidth = 320;
+var camHeight = 240;
+
+var remoteArray = [];
+for(var i = 0; i < 5; i++) {
+  var elementId = 'remote' + i.toString();
+  var elem = document.getElementById(elementId);
+  var ctx = elem.getContext('2d');
+
+  var img = new Image();
+
+  var remoteEntry = {
+    canvas: elem,
+    context: ctx,
+    image: img
+  };
+
+  remoteArray.push(remoteEntry);
+
+  img.onload = (function() {
+    console.log("drawing to " + this.canvas.id);
+    this.context.drawImage(this.image, 0, 0, camWidth, camHeight);
+  }).bind(remoteEntry);
+
+  elem.width = camWidth;
+  elem.height = camHeight;
+  elem.style = "border:1px solid";
+}
+
+var context = canvas.getContext('2d');
 
 var width, height;
 
 if (navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({video: { width: 320, height: 240 }})
+    navigator.mediaDevices.getUserMedia({video: { width: camWidth, height: camHeight }})
       .then(ms => {
         video.srcObject = ms;
 
         video.onloadedmetadata = function(e) {
           video.play();
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+          canvas.width = camWidth;
+          canvas.height = camHeight;
           //window.requestAnimationFrame(loop);
           lastT = Date.now();
-          window.setTimeout(loop, delayPerFrame);
+          //window.setTimeout(loop, delayPerFrame);
+          window.postMessage("","*");
         };
       });
 }
 
 function takepicture() {
-  var context = canvas.getContext('2d');
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  context.drawImage(video, 0, 0, camWidth, camHeight);
 }
 
-function emitpicture(){
-  canvas.toBlob(function(blob) {
+var connected = false;
 
-    var context = remote.getContext('2d');
-    var img = new Image();
-    img.onload = () => {
-      remote.width = 320;
-      remote.height = 240;
-      context.drawImage(img,0,0,320,240);
-      picSize = blob.size;
-    };
-    img.src = URL.createObjectURL(blob);
-
-
-  }, 'image/jpeg', 0.25);
+function emitpicture() {
+  if (connected) {
+    canvas.toBlob(function(blob) {
+      socket.send(blob);
+    }, 'image/jpeg', 0.25);
+  }
 }
+
+window.addEventListener("message", loop, false);
 
 var lastT = 0;
 var picSize = 0;
+var delta = 0;
 function loop() {
   var t = Date.now();
-  takepicture();
-  emitpicture();
 
-  var fpsCalc = Math.round((1 / (t - lastT) * 1000) * 100) / 100
-  var bps = fpsCalc * picSize;
-  fps.innerText = fpsCalc.toString() + " -- " + picSize + " bytes per frame = " + Math.round(bps) + " bytes per second";
+  delta = delta + t - lastT;
+  if(delta > delayPerFrame) {
+    delta = 0;
+    takepicture();
+    emitpicture();
+  }
+
   lastT = t;
 
   //window.requestAnimationFrame(loop);
-  window.setTimeout(loop, delayPerFrame);
+  //window.setTimeout(loop, delayPerFrame);
+  window.postMessage("","*");
 }
 
 
 
 var socket = new WebSocket('wss://24.88.118.234:8080/room/'+roomid, 'room-protocol');
+socket.binaryType = 'arraybuffer'
 socket.onmessage = function(event) {
   // assume string data is json
   // assume binary data is camera data
 
   if(typeof event.data === "string") {
-    console.log("STRING DATA");
     var message = JSON.parse(event.data);
-    console.log(message);
     handleIncomingMessage(message);
-  } else if (event.data instanceof Blob) {
-    console.log("BINARY DATA");
+  } else if (event.data instanceof ArrayBuffer) {
+    handleIncomingBinary(event.data);
   }
 }
 
@@ -134,12 +136,22 @@ function handleIncomingMessage(message) {
   if (message.messageType == 'hello') {
     // This is the 'hello' packet from server. Contains the clientid for this client.
     clientid = message.clientid;
-
+    connected = true;
   }
 }
 
+function handleIncomingBinary(arrayBuffer) {
+  var dv = new DataView(arrayBuffer);
 
+  var cursor = 0;
+  var remoteId = 0;
+  do {
+    var frameLen = dv.getUint16(cursor); cursor += 2;
+    var frame = arrayBuffer.slice(cursor, frameLen + cursor); cursor += frameLen;
+    var frameBlob = new Blob([frame], { type: 'image/jpeg' });
+    remoteArray[remoteId].image.src = URL.createObjectURL(frameBlob);
 
-function handleIncomingBinary(blob) {
+    remoteId++;
+  } while(cursor < arrayBuffer.byteLength);
 
 }

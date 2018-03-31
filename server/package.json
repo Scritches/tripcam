@@ -5,11 +5,12 @@
   "main": "run.js",
   "scripts": {
     "run": "node run.js",
-    "new-certs" : "openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout ./certs/server.key -out ./certs/server.crt"
+    "new-certs": "openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout ./certs/server.key -out ./certs/server.crt"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "express": "^4.16.3",
     "lodash": "^4.17.5",
     "pug": "^2.0.3",
