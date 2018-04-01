@@ -1,22 +1,22 @@
-// polyfill for canvas.toBlob
-if (!HTMLCanvasElement.prototype.toBlob) {
-   Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
-     value: function (callback, type, quality) {
-       var canvas = this;
-       setTimeout(function() {
-         var binStr = atob( canvas.toDataURL(type, quality).split(',')[1] ),
-         len = binStr.length,
-         arr = new Uint8Array(len);
-
-         for (var i = 0; i < len; i++ ) {
-            arr[i] = binStr.charCodeAt(i);
-         }
-
-         callback( new Blob( [arr], {type: type || 'image/png'} ) );
-       });
-     }
-  });
-}
+// // polyfill for canvas.toBlob
+// if (!HTMLCanvasElement.prototype.toBlob) {
+//    Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
+//      value: function (callback, type, quality) {
+//        var canvas = this;
+//        setTimeout(function() {
+//          var binStr = atob( canvas.toDataURL(type, quality).split(',')[1] ),
+//          len = binStr.length,
+//          arr = new Uint8Array(len);
+//
+//          for (var i = 0; i < len; i++ ) {
+//             arr[i] = binStr.charCodeAt(i);
+//          }
+//
+//          callback( new Blob( [arr], {type: type || 'image/png'} ) );
+//        });
+//      }
+//   });
+// }
 
 
 // This is all temporary code, just to test displaying local video and recording frames.
@@ -71,10 +71,10 @@ if (navigator.mediaDevices.getUserMedia) {
           video.play();
           canvas.width = camWidth;
           canvas.height = camHeight;
-          //window.requestAnimationFrame(loop);
+          window.requestAnimationFrame(loop);
           lastT = Date.now();
           //window.setTimeout(loop, delayPerFrame);
-          window.postMessage("","*");
+          //window.postMessage("","*");
         };
       });
 }
@@ -87,18 +87,29 @@ var connected = false;
 
 function emitpicture() {
   if (connected) {
-    canvas.toBlob(function(blob) {
-      socket.send(blob);
-    }, 'image/jpeg', 0.5);
+    canvas.toBlob(sendToServer, 'image/jpeg', 0.5);
   }
 }
 
-window.addEventListener("message", loop, false);
+function sendToServer(blob) {
+  socket.send(blob);
+  blob = null;
+  delete blob;
+}
+
+//window.addEventListener("message", loop, false);
 
 var lastT = 0;
 var picSize = 0;
 var delta = 0;
 function loop() {
+  doFrameGrabbing();
+  window.requestAnimationFrame(loop);
+  //window.setTimeout(loop, delayPerFrame);
+  //window.postMessage("","*");
+}
+
+function doFrameGrabbing() {
   var t = Date.now();
 
   delta = delta + t - lastT;
@@ -106,13 +117,12 @@ function loop() {
     delta = 0;
     takepicture();
     emitpicture();
+
+    //window.setTimeout(function() { window.postMessage("","*"); }, 1);
+    //return;
   }
 
   lastT = t;
-
-  //window.requestAnimationFrame(loop);
-  //window.setTimeout(loop, delayPerFrame);
-  window.postMessage("","*");
 }
 
 
@@ -120,6 +130,7 @@ function loop() {
 var socket = new WebSocket('wss://24.88.118.234/room/'+roomid, 'room-protocol');
 socket.binaryType = 'arraybuffer'
 socket.onmessage = function(event) {
+  doFrameGrabbing();
   // assume string data is json
   // assume binary data is camera data
 
