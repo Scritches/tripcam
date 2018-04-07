@@ -2,6 +2,7 @@
 
 A simple node and html5 + javascript cam site
 
+
 ### Installing
 
 There's no npm package yet, so clone the repository:
@@ -12,7 +13,7 @@ git clone https://github.com/Scritches/tripcam.git
 
 When that's done, `cd server` for the rest:
 
-You'll need bower, so in case you haven't already, run:
+You'll need bower, so in case you haven't already, run (you made need sudo):
 ```
 npm install bower -g
 ```
