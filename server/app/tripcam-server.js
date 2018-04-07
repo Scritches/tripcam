@@ -63,7 +63,7 @@ class TripcamServer {
       let roomid = req.params.roomid;
 
       this.rooms.createRoom(roomid);
-      res.render('room', { roomid: roomid });
+      res.render('room', { roomid: roomid, serverAddress: this.config.wss.serverAddress });
     }).bind(this));
 
     // Configure Static files route

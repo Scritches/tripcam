@@ -11,10 +11,12 @@ block content
     button#cameraToggle Turn Camera On
   div#roomFeed
   
+  script(src='/bower_components/promise-polyfill/dist/polyfill.js')
   script(src='/js/mediaDevices-getUserMedia-polyfill.js')
   script(src='/js/canvas-toblob-polyfill.js')
   script(src='/js/random-name.js')
   script(src='/bower_components/eventEmitter/EventEmitter.js')
   script(src='/bower_components/underscore/underscore.js')
   script roomid = "#{roomid}";
+  script serverAddress = "#{serverAddress}";
   script(src='/js/room.js')

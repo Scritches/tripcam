@@ -15,10 +15,9 @@ const config = function(root) {
     wss: {
       allowedOrigins: [
           'https://localhost',
-          'https://24.88.118.234',
-          'https://scritchface.cf'
+          'https://127.0.0.1',
       ],
-      serverAddress: 'wss://24.88.118.234'
+      serverAddress: 'wss://127.0.0.1'
     },
 
     express: {
