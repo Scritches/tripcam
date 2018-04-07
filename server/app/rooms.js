@@ -109,9 +109,7 @@ class Room extends EventEmitter {
   }
 
   handleDisconnect(clientId) {
-    console.log('client ', clientId, ' disconnected');
-    if(this.clients[clientId]) {
-      console.log('deleting client');
+    if (this.clients[clientId]) {
       delete this.clients[clientId];
     }
   }
@@ -127,6 +125,7 @@ class Room extends EventEmitter {
           frames: frames
         });
       }
+      //delete frames;
     }
   }
 
@@ -159,7 +158,6 @@ class Room extends EventEmitter {
 }
 
 
-
 class Client extends EventEmitter {
   constructor(clientId, socket) {
     super();
@@ -180,12 +178,16 @@ class Client extends EventEmitter {
   }
 
   sendMessage(msg) {
+    if(msg.messageType != 'frames') {
+      console.log('-> ', msg, ' : ', this.username);
+    }
+
     this.socket.sendUTF(JSON.stringify(msg));
   }
 
   handleMessage(msg) {
-    if(msg.messageType != 'frame') {
-      console.log('<- ', msg);
+    if(msg.messageType != 'frame' && msg.messageType != 'keepalive') {
+      console.log('<- ', msg, ' : ', this.username);
     }
 
     this.emit('message');
@@ -204,11 +206,13 @@ class Client extends EventEmitter {
       }
 
       case 'frame': {
+        delete this.lastFrame;
         this.lastFrame = msg.frame;
         return;
       }
 
       case 'cameraOff': {
+        delete this.lastFrame;
         this.lastFrame = '';
         this.emit('cameraOff', this.clientId);
         return;
@@ -217,101 +221,13 @@ class Client extends EventEmitter {
   }
 
   handleDisconnect() {
-    console.log("Client disconnected");
+    console.log('Client', this.clientId,' : ', this.username, 'disconnected');
+    delete this.lastFrame;
     this.lastFrame = '';
     this.emit('disconnect', this.clientId);
   }
 
 }
-
-
-
-
-
-  // broadcast(message, fromClient) {
-  //   var msgString = JSON.stringify(message);
-  //   for(var clientid in this.clients) {
-  //     if (fromClient && fromClient.clientid == clientid) continue;
-  //     var client = this.clients[clientid];
-  //     client.cn.sendUTF(msgString);
-  //   }
-  // }
-  //
-  // removeClient(client) {
-  //   delete this.clients[client.clientid];
-  // }
-  //
-  // handleJSON(client, message) {
-  //   console.log("client ",client.clientid, " sends ", message);
-  //
-  //   switch(message.messageType) {
-  //     case 'cameraoff': {
-  //       client.lastFrame = null;
-  //       this.broadcast(message, client);
-  //       return;
-  //     }
-  //
-  //     case 'changename': {
-  //       client.username = message.newName;
-  //       this.broadcast(message, client);
-  //       return;
-  //     }
-  //   }
-  //
-  // }
-  //
-  // emitFrames() {
-  //   for(var clientid in this.clients) {
-  //     var client = this.clients[clientid]
-  //     var out = this.buildFramesFor(client);
-  //     if(out != null) {
-  //       client.cn.sendBytes(out);
-  //     }
-  //   }
-  // }
-  //
-  // buildFramesFor(client) {
-  //   var otherClients = _(this.clients)
-  //     //.filter(c => c.clientid != client.clientid)
-  //     .filter(c => c.lastFrame != null);
-  //
-  //   var bufferLength = otherClients
-  //     .reduce((r, c) => r + 2 + c.lastFrame.length, 0);
-  //
-  //   if(bufferLength == 0) return null;
-  //
-  //   var buffer = otherClients
-  //     .reduce((r, c) => {
-  //       r.buffer.writeUInt16BE(c.lastFrame.length, r.cursor);
-  //       r.cursor += 2;
-  //       c.lastFrame.copy(r.buffer, r.cursor);
-  //       r.cursor += c.lastFrame.length
-  //       return r;
-  //     }, { cursor: 0, buffer: Buffer.alloc(bufferLength) })
-  //     .buffer;
-  //
-  //   return buffer;
-  // }
-  //
-  // destroy() {
-  //   clearInterval(this.activityInterval);
-  //   clearInterval(this.emitInterval);
-  //
-  //   _.each(this.clients, c => {
-  //     c.cn.close();
-  //   });
-  //
-  //   //this.clients = null;
-  //
-  //   console.log("Destroyed room: ", this.roomid);
-  // }
-//}
-
-
-
-
-
-
 
 module.exports.Rooms = Rooms;
 module.exports.Room = Room;

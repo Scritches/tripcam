@@ -26,8 +26,8 @@ const config = function(root) {
     },
 
     rooms: {
-      activityTimeout: 5000,
-      serverFps: 30
+      activityTimeout: 60000,
+      serverFps: 5
     }
   };
 };

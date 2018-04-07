@@ -63,6 +63,4 @@ Client sends:
 
 ----
 
-\* = to all clients except the originating client.
-
 \** = frame data is not echoed back to originating client.
