@@ -1,0 +1,18 @@
+body {
+  background-color: #232f3b;
+  color: #c6c0d1;
+}
+
+#ui {
+  border-bottom: 3px solid;
+  padding-bottom: 5px;
+}
+
+#roomFeed {
+  position: absolute;
+  top: 45px;
+  bottom: 12px;
+  left: 8px;
+  right: 8px;
+  background-color: #121e2a;
+}

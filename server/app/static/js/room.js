@@ -1,170 +1,231 @@
-// // polyfill for canvas.toBlob
-// if (!HTMLCanvasElement.prototype.toBlob) {
-//    Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
-//      value: function (callback, type, quality) {
-//        var canvas = this;
-//        setTimeout(function() {
-//          var binStr = atob( canvas.toDataURL(type, quality).split(',')[1] ),
-//          len = binStr.length,
-//          arr = new Uint8Array(len);
-//
-//          for (var i = 0; i < len; i++ ) {
-//             arr[i] = binStr.charCodeAt(i);
-//          }
-//
-//          callback( new Blob( [arr], {type: type || 'image/png'} ) );
-//        });
-//      }
-//   });
-// }
+(function(window, document) {
 
+  var camSize = { width: 320, height: 240 };
+  var desiredFps = 30;
+  var delayPerFrame = 1000 / desiredFps;
+  var cameraQuality = 0.75;
+  var debug = false;
 
-// This is all temporary code, just to test displaying local video and recording frames.
-// So this is all ugly, largely lifted from other areas and hacked at until I got it working.
-// Please don't judge me yet. >.<
+  // Gather resources
+  var pageResources = {
+    offlineImage: document.getElementById('offline'),
+    toggleCameraButton: document.getElementById('cameraToggle'),
+    usernameElement: document.getElementById('username'),
+    usernameChangeButton: document.getElementById('changeUsername'),
+    renderContainer: document.getElementById('roomFeed'),
 
-var desiredFps = 30;
-var delayPerFrame = 1000 / desiredFps;
+    videoElement: document.createElement('video'),
+    recordCanvas: document.createElement('canvas'),
 
-
-var video = document.getElementById('video');
-var canvas = document.getElementById('record');
-
-var camWidth = 320;
-var camHeight = 240;
-
-var remoteArray = [];
-for(var i = 0; i < 5; i++) {
-  var elementId = 'remote' + i.toString();
-  var elem = document.getElementById(elementId);
-  var ctx = elem.getContext('2d');
-
-  var img = new Image();
-
-  var remoteEntry = {
-    canvas: elem,
-    context: ctx,
-    image: img
+    remoteImages: []
   };
 
-  remoteArray.push(remoteEntry);
+  // Prepare the record canvas
+  pageResources.renderContainer.appendChild(pageResources.recordCanvas);
 
-  img.onload = (function() {
-    this.context.drawImage(this.image, 0, 0, camWidth, camHeight);
-  }).bind(remoteEntry);
 
-  elem.width = camWidth;
-  elem.height = camHeight;
-  elem.style = "border:1px solid";
-}
+  // Set up initial values for resources
+  pageResources.videoElement.autoplay = true;
+  pageResources.videoElement.height = camSize.height;
+  pageResources.videoElement.width = camSize.width;
 
-var context = canvas.getContext('2d');
+  pageResources.recordCanvas.height = camSize.height;
+  pageResources.recordCanvas.width = camSize.width;
 
-var width, height;
+  var ctx = pageResources.recordCanvas.getContext('2d');
+  ctx.drawImage(pageResources.offlineImage,0,0,camSize.width,camSize.height);
 
-if (navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({video: { width: camWidth, height: camHeight }})
-      .then(ms => {
-        video.srcObject = ms;
 
-        video.onloadedmetadata = function(e) {
-          video.play();
-          canvas.width = camWidth;
-          canvas.height = camHeight;
-          window.requestAnimationFrame(loop);
-          lastT = Date.now();
-          //window.setTimeout(loop, delayPerFrame);
-          //window.postMessage("","*");
-        };
+  // handle window resizing
+  window.addEventListener('resize', doResize);
+  function doResize() {
+    fixLayout();
+  }
+
+  // Username handling functions
+  var username = window.localStorage.getItem('username') || generateName();
+
+  function updateUsernameDisplay() {
+    pageResources.usernameElement.innerText = '[ ' + username + ' ] ';
+  }
+
+  pageResources.usernameChangeButton.addEventListener('click', function() {
+    var newName = window.prompt('Enter a new username:', username)
+    if (newName && newName != username) {
+      username = newName;
+      updateUsernameDisplay();
+
+      window.localStorage.setItem('username', username);
+
+      if (connected) sendMessage({
+        messageType: 'changeName',
+        username: username
       });
-}
+    }
+  });
 
-function takepicture() {
-  context.drawImage(video, 0, 0, camWidth, camHeight);
-}
+  updateUsernameDisplay();
 
-var connected = false;
 
-function emitpicture() {
-  if (connected) {
-    canvas.toBlob(sendToServer, 'image/jpeg', 0.5);
+
+  // local camera handling
+  var cameraResources = {
+    cameraOn: false,
+    stream: null
+  };
+
+  pageResources.toggleCameraButton.addEventListener('click', function() {
+    pageResources.toggleCameraButton.disabled = true;
+    if (!cameraResources.cameraOn) {
+      navigator.mediaDevices.getUserMedia({
+        video: { width: camSize.width, height: camSize.height },
+        audio: false
+      }).then(function(stream) {
+        pageResources.videoElement.srcObject = cameraResources.stream = stream;
+        pageResources.toggleCameraButton.innerText = 'Turn Camera Off';
+        cameraResources.cameraOn = true;
+        pageResources.toggleCameraButton.disabled = false;
+        window.requestAnimationFrame(captureCameraLoop);
+      },function(error) {
+        console.log(error);
+        pageResources.toggleCameraButton.disabled = false;
+      });
+    } else {
+      pageResources.videoElement.srcObject = null;
+      cameraResources.stream.getTracks().forEach(function(t) { t.stop(); });
+      cameraResources.stream = null;
+      pageResources.toggleCameraButton.innerText = 'Turn Camera On';
+      cameraResources.cameraOn = false;
+      pageResources.toggleCameraButton.disabled = false;
+      if (connected) sendMessage({
+        messageType: 'cameraOff'
+      });
+    }
+  });
+
+  function captureCamera() {
+    ctx.drawImage(pageResources.videoElement,0,0,camSize.width,camSize.height);
   }
-}
 
-function sendToServer(blob) {
-  socket.send(blob);
-  blob = null;
-  delete blob;
-}
-
-//window.addEventListener("message", loop, false);
-
-var lastT = 0;
-var picSize = 0;
-var delta = 0;
-function loop() {
-  doFrameGrabbing();
-  window.requestAnimationFrame(loop);
-  //window.setTimeout(loop, delayPerFrame);
-  //window.postMessage("","*");
-}
-
-function doFrameGrabbing() {
-  var t = Date.now();
-
-  delta = delta + t - lastT;
-  if(delta > delayPerFrame) {
-    delta = 0;
-    takepicture();
-    emitpicture();
-
-    //window.setTimeout(function() { window.postMessage("","*"); }, 1);
-    //return;
+  function captureCameraLoop() {
+    if (cameraResources.cameraOn) {
+      captureCamera();
+      window.requestAnimationFrame(captureCameraLoop);
+    } else {
+      ctx.drawImage(pageResources.offlineImage,0,0,camSize.width,camSize.height);
+    }
   }
 
-  lastT = t;
-}
 
 
 
-var socket = new WebSocket('wss://24.88.118.234/room/'+roomid, 'room-protocol');
-socket.binaryType = 'arraybuffer'
-socket.onmessage = function(event) {
-  doFrameGrabbing();
-  // assume string data is json
-  // assume binary data is camera data
+  // Room server socket handling
+  var connected = false;
+  var frames = [];
+  var socket = new WebSocket('wss://24.88.118.234/room/' + roomid, 'room-protocol');
 
-  if(typeof event.data === "string") {
-    var message = JSON.parse(event.data);
-    handleIncomingMessage(message);
-  } else if (event.data instanceof ArrayBuffer) {
-    handleIncomingBinary(event.data);
+  function sendMessage(msg) {
+    if (debug) console.log('-> ', msg);
+    socket.send(JSON.stringify(msg));
   }
-}
 
-function handleIncomingMessage(message) {
-  if (message.messageType == 'hello') {
-    // This is the 'hello' packet from server. Contains the clientid for this client.
-    clientid = message.clientid;
-    connected = true;
+  socket.onopen = function() {
+    sendMessage({
+      messageType: 'connect',
+      username: username
+    });
   }
-}
 
-function handleIncomingBinary(arrayBuffer) {
-  var dv = new DataView(arrayBuffer);
-
-  var cursor = 0;
-  var remoteId = 0;
-  do {
-    var frameLen = dv.getUint16(cursor); cursor += 2;
-    var frame = arrayBuffer.slice(cursor, frameLen + cursor); cursor += frameLen;
-    var frameBlob = new Blob([frame], { type: 'image/jpeg' });
-    remoteArray[remoteId].image.src = URL.createObjectURL(frameBlob);
-
-    remoteId++;
-  } while(cursor < arrayBuffer.byteLength);
-
-  for(; remoteId < 5; remoteId++) {
-    remoteArray[remoteId].context.clearRect(0, 0, camWidth, camHeight);
+  socket.onclose = function() {
+    connected = false;
   }
-}
+
+  socket.onmessage = function(e) {
+    var msg = JSON.parse(e.data);
+    if (debug) console.log('<- ', msg);
+
+    if (msg.messageType == 'hello') {
+      connected = true;
+      window.requestAnimationFrame(mainProcLoop);
+      setInterval(function() {
+        if (connected) sendMessage({
+          messageType: 'keepalive'
+        });
+      }, 1000);
+    }
+
+    if (msg.messageType == 'frames') {
+      frames = msg.frames;
+      captureCamera();
+      mainProc();
+    }
+  }
+
+
+
+  function record() {
+    if (connected && cameraResources.cameraOn) {
+      var frameData = pageResources.recordCanvas.toDataURL('image/jpeg', cameraQuality);
+      sendMessage({
+        messageType: 'frame',
+        frame: frameData
+      });
+    }
+  }
+
+  var layoutWidth = camSize.width;
+  var layoutHeight = camSize.height;
+  function fixLayout() {
+
+  }
+
+  function render() {
+    var didChangeLayout = false;
+
+    while (pageResources.remoteImages.length > frames.length) {
+      // We have too many images
+      pageResources.renderContainer.removeChild(pageResources.remoteImages[0]);
+      pageResources.remoteImages.pop();
+      didChangeLayout = true;
+    }
+
+    while (pageResources.remoteImages.length < frames.length) {
+      // We don't have enough images
+      var newImg = new Image();
+      newImg.width = camSize.width;
+      newImg.height = camSize.height;
+      pageResources.remoteImages.push(newImg);
+      pageResources.renderContainer.appendChild(newImg);
+      didChangeLayout = true;
+    }
+
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].frame == '') {
+        pageResources.remoteImages[i].src = pageResources.offlineImage.src;
+      } else {
+        pageResources.remoteImages[i].src = frames[i].frame;
+      }
+    }
+
+    if (didChangeLayout) fixLayout();
+  }
+
+  var lastProc = Date.now();
+  function mainProc() {
+    var delta = Date.now() - lastProc;
+    if (delta > delayPerFrame) {
+      lastProc = Date.now();
+      record();
+      render();
+    }
+  }
+
+  function mainProcLoop() {
+    mainProc();
+    window.requestAnimationFrame(mainProcLoop);
+  }
+
+  fixLayout();
+
+
+}(window, document));

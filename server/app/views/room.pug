@@ -1,15 +1,20 @@
 extends layout
 
 block content
-  h1 Welcome to room #{roomid}
-  .camera
-    video#video(style='display:none') Video stream unavailable
-  canvas#record(style='border: 1px solid')
-  canvas#remote0
-  canvas#remote1
-  canvas#remote2
-  canvas#remote3
-  canvas#remote4
-
+  img#offline(src='/images/offline.png', style='display:none')
+  div#ui
+    span#roomid Room [ #{roomid} ] - 
+    span Username: 
+    span#username [ asdqwe ] 
+    button#changeUsername Change Username
+    span &nbsp;&nbsp;
+    button#cameraToggle Turn Camera On
+  div#roomFeed
+  
+  script(src='/js/mediaDevices-getUserMedia-polyfill.js')
+  script(src='/js/canvas-toblob-polyfill.js')
+  script(src='/js/random-name.js')
+  script(src='/bower_components/eventEmitter/EventEmitter.js')
+  script(src='/bower_components/underscore/underscore.js')
   script roomid = "#{roomid}";
   script(src='/js/room.js')
