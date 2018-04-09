@@ -14,6 +14,10 @@ This is a list of things I want to accomplish, in no particular order:
 
 * Load balance across cores - need that sweet sweet parallel goodness
 
+* Private (password-protected) Rooms
+
+* quad-tree based motion compression for video frames (or maybe javascript video encoding??????)
+
 * Audio Support
   * https://subvisual.co/blog/posts/39-tutorial-html-audio-capture-streaming-to-node-js-no-browser-extensions/
 
