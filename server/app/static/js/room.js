@@ -13,6 +13,7 @@ window.addEventListener('load', function() {
     usernameElement: document.getElementById('username'),
     usernameChangeButton: document.getElementById('changeUsername'),
     renderContainer: document.getElementById('roomFeed'),
+    bpsDisplay: document.getElementById('bps'),
 
     videoElement: document.createElement('video'),
     recordCanvas: document.createElement('canvas'),
@@ -117,9 +118,24 @@ window.addEventListener('load', function() {
   var frames = [];
   var socket = new WebSocket(serverAddress + '/room/' + roomid, 'room-protocol');
 
+  var bytesSent = 0;
+  var bytesRcvd = 0;
+  setInterval(function() {
+    if(!connected) {
+      pageResources.bpsDisplay.innerText = '';
+    } else {
+      pageResources.bpsDisplay.innerText = ' ' + bytesSent + ' bytes sent -- ' + bytesRcvd + ' bytes recv';
+    }
+
+    bytesSent = 0;
+    bytesRcvd = 0;
+  }, 1000);
+
   function sendMessage(msg) {
     if (debug) console.log('-> ', msg);
-    socket.send(JSON.stringify(msg));
+    var out = JSON.stringify(msg);
+    bytesSent += out.length;
+    socket.send(out);
   }
 
   socket.onopen = function() {
@@ -134,6 +150,7 @@ window.addEventListener('load', function() {
   }
 
   socket.onmessage = function(e) {
+    bytesRcvd += e.data.length;
     var msg = JSON.parse(e.data);
     if (debug) console.log('<- ', msg);
 
