@@ -28,10 +28,17 @@ function VideoDisplay(clientId, username) {
   this.el.appendChild(this.el_username = document.createElement('div'));
   this.el_username.className = 'username';
   this.el_username.innerText = this.username;
+
+  this.imageDblClickHandler = function() {
+    this.emit('dblclick', this);
+  }.bind(this);
 }
+
+VideoDisplay.prototype = _.clone(EventEmitter.prototype);
 
 VideoDisplay.prototype.detach = function() {
   if(this.container) {
+    this.el_image.removeEventListener('dblclick', this.imageDblClickHandler);
     this.container.removeChild(this.el);
     this.container = null;
   }
@@ -44,6 +51,8 @@ VideoDisplay.prototype.attach = function(container) {
 
   container.appendChild(this.el);
   this.container = container;
+
+  this.el_image.addEventListener('dblclick', this.imageDblClickHandler);
 }
 
 VideoDisplay.prototype.updateName = function(username) {
@@ -88,7 +97,20 @@ function RoomLayout(container, localDisplay) {
   this.container = container;
   this.localDisplay = localDisplay;
   this.remoteDisplays = { };
+  this.fullScreenDisplay = null;
   var numDisplays = 0;
+
+  this.displayDblClicked = function(display) {
+    if (this.fullScreenDisplay === display) {
+      this.fullScreenDisplay = null;
+      this.layoutChanged();
+    } else {
+      this.fullScreenDisplay = display;
+      this.layoutChanged();
+    }
+  };
+
+  this.localDisplay.on('dblclick', this.displayDblClicked.bind(this));
 
   this.renderFrames = function(frames) {
     var layoutChanged = false;
@@ -100,6 +122,7 @@ function RoomLayout(container, localDisplay) {
       if (!remote) {
         layoutChanged = true;
         remote = new VideoDisplay(frame.clientId, frame.username);
+        remote.on('dblclick', this.displayDblClicked.bind(this));
         this.remoteDisplays[frame.clientId] = remote;
         numDisplays++;
       }
@@ -115,6 +138,7 @@ function RoomLayout(container, localDisplay) {
     for (var i = 0; i < offline.length; i++) {
       layoutChanged = true;
       let remote = this.remoteDisplays[offline[i]];
+      if (this.fullScreenDisplay == remote) this.fullScreenDisplay = null;
       remote.detach();
       delete this.remoteDisplays[offline[i]];
       numDisplays--;
@@ -128,11 +152,12 @@ function RoomLayout(container, localDisplay) {
   this.currentFrameLayout = null;
   this.currentLayout = null;
   this.layoutChanged = function() {
-
     var newFrameLayout = frameLayouts[numDisplays + 1];
     if (this.currentFrameLayout == null && newFrameLayout == null) {
       return;
     }
+
+    if (this.fullScreenDisplay) newFrameLayout = { rows: 1, cols: 1 };
 
     // Create the new layout and assign video display elements to the cells
     var newLayout = document.createElement('div');
@@ -155,8 +180,12 @@ function RoomLayout(container, localDisplay) {
 
         // Populate cell
         if (rowNum == 0 && colNum == 0) {
-          // This is where the local display needs to be homed.
-          this.localDisplay.attach(col);
+          // This is where the local display (or the full screen display) needs to be homed.
+          if (this.fullScreenDisplay) {
+            this.fullScreenDisplay.attach(col);
+          } else {
+            this.localDisplay.attach(col);
+          }
         } else {
           // This cell belongs to a remote display.
           if (remoteDisplayIndex < numDisplays) {
@@ -167,7 +196,6 @@ function RoomLayout(container, localDisplay) {
           }
         }
       }
-
     }
 
     if (this.currentLayout) this.container.removeChild(this.currentLayout);
@@ -175,7 +203,7 @@ function RoomLayout(container, localDisplay) {
     this.currentLayout = newLayout;
     this.currentFrameLayout = newFrameLayout;
     this.resized();
-  }
+  };
 
   this.resized = function() {
     var containerSize = { width: this.container.clientWidth - 10, height: this.container.clientHeight - 10 };
@@ -185,7 +213,9 @@ function RoomLayout(container, localDisplay) {
       height: Math.floor(containerSize.height / this.currentFrameLayout.rows) - 20 //-20 for username label height
     };
 
-    if(cellSize.width > camSize.width * 2) cellSize.width = camSize.width * 2;
+    if(!this.fullScreenDisplay) {
+      if(cellSize.width > camSize.width * 2) cellSize.width = camSize.width * 2;
+    }
 
     if(cellSize.width / cellSize.height > camSize.width / camSize.height) {
       cellSize.width = cellSize.height * (camSize.width / camSize.height);
