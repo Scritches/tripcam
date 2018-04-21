@@ -8,7 +8,7 @@ var debug = false;
 
 
 function VideoDisplay(clientId, username) {
-  console.log('new video display: ', clientId);
+  if(debug) console.log('new video display: ', clientId);
   this.clientId = clientId;
   this.username = username;
 
@@ -179,13 +179,11 @@ function RoomLayout(container, localDisplay) {
   }
 
   this.resized = function() {
-    // username label height: 20px
-
     var containerSize = { width: this.container.clientWidth - 10, height: this.container.clientHeight - 10 };
 
     // Calculate space available to each cell:
     var cellSize = {
-      width: Math.floor(containerSize.width / this.currentFrameLayout.cols) - 10, // -10 for border components
+      width: Math.floor(containerSize.width / this.currentFrameLayout.cols) - 20, // -20 for border components
       height: Math.floor(containerSize.height / this.currentFrameLayout.rows) - 20 //-20 for username label height
     };
 
@@ -199,22 +197,11 @@ function RoomLayout(container, localDisplay) {
       cellSize.height = cellSize.width * (camSize.height / camSize.width);
     }
 
-
-
     var imgs = this.container.getElementsByTagName('img');
     for (var i = 0; i < imgs.length; i++) {
       imgs[i].width = cellSize.width;
       imgs[i].height = cellSize.height;
     }
-
-    //this.localDisplay.el_image.width = cellSize.width;
-    //this.localDisplay.el_image.height = cellSize.height;
-
-    //_.each(this.remoteDisplays, d => {
-      //d.el_image.width = cellSize.width;
-      //d.el_image.height = cellSize.height;
-    //})
-
   };
 
 
@@ -362,7 +349,15 @@ window.addEventListener('load', function() {
     if(!connected) {
       pageResources.bpsDisplay.innerText = '';
     } else {
-      pageResources.bpsDisplay.innerText = ' ' + bytesSent + ' bytes sent -- ' + bytesRcvd + ' bytes recv';
+      var sentStr = bytesSent > 2048
+        ? Math.floor(bytesSent / 1024) + ' KB sent'
+        : bytesSent + ' bytes sent';
+
+      var recvStr = bytesRcvd > 2048
+        ? Math.floor(bytesRcvd / 1024) + ' KB recv'
+        : bytesRcvd + ' bytes recv';
+
+      pageResources.bpsDisplay.innerText = ' ' + sentStr + ' - ' + recvStr;
     }
 
     bytesSent = 0;
@@ -429,19 +424,13 @@ window.addEventListener('load', function() {
   }
 
 
-
-
-  function render() {
-    pageResources.roomLayout.renderFrames(frames);
-  }
-
   var lastProc = Date.now();
   function mainProc() {
     var delta = Date.now() - lastProc;
     if (delta > delayPerFrame) {
       lastProc = Date.now();
       record();
-      render();
+      pageResources.roomLayout.renderFrames(frames);
     }
   }
 

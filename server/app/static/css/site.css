@@ -18,16 +18,18 @@ body {
 }
 
 .roomLayout {
-  padding-top: 10px;
-  padding-left: 10px;
+  position: absolute;
   display: flex;
   flex-flow: column;
+  height: 100%;
+  width: 100%;
 }
 
 .feedRow {
   display: flex;
   flex-flow: row;
   flex-grow: 1;
+  align-items: center;
 }
 
 .feedCol {
