@@ -246,6 +246,7 @@ window.addEventListener('load', function() {
 
   // Gather resources
   pageResources = {
+    bodyElement: document.getElementsByTagName('body')[0],
     offlineImage: document.getElementById('offline'),
     toggleCameraButton: document.getElementById('cameraToggle'),
     usernameElement: document.getElementById('username'),
@@ -256,7 +257,6 @@ window.addEventListener('load', function() {
     videoElement: document.createElement('video'),
     recordCanvas: document.createElement('canvas'),
 
-    //remoteDisplays: { }
     localDisplay: null,
     roomLayout: null
   };
@@ -372,7 +372,8 @@ window.addEventListener('load', function() {
   var bytesRcvd = 0;
   setInterval(function() {
     if(!connected) {
-      pageResources.bpsDisplay.innerText = '';
+      frames = [];
+      pageResources.bpsDisplay.innerText = ' * Disconnected *';
     } else {
       var sentStr = bytesSent > 2048
         ? Math.floor(bytesSent / 1024) + ' KB sent'
@@ -405,6 +406,7 @@ window.addEventListener('load', function() {
 
   socket.onclose = function() {
     connected = false;
+    pageResources.bodyElement.style.backgroundColor = '#990000';
   }
 
   socket.onmessage = function(e) {
