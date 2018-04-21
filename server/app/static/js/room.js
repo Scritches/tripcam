@@ -230,6 +230,12 @@ function RoomLayout(container, localDisplay) {
       imgs[i].width = cellSize.width;
       imgs[i].height = cellSize.height;
     }
+
+    var nameLabels = document.querySelectorAll('.username');
+    for (var i = 0; i < nameLabels.length; i++) {
+      //nameLabels[i].style.width = cellSize.width;
+      nameLabels[i].setAttribute('style', 'width: ' + cellSize.width + 'px;');
+    }
   };
 
 
