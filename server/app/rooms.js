@@ -1,5 +1,6 @@
 const EventEmitter = require('events').EventEmitter,
-      _ = require('lodash')._;
+      _ = require('lodash')._,
+      pako = require('pako');
 
 class Rooms {
   constructor(config) {
@@ -119,20 +120,20 @@ class Room extends EventEmitter {
     for(var clientId in this.clients) {
       var client = this.clients[clientId]
       var frames = this.buildFramesFor(clientId);
+
       if(frames != null) {
+        var deflatedFrames = frames == [] ? frames : pako.deflate(JSON.stringify(frames), { to: 'string' });
         client.sendMessage({
           messageType: 'frames',
-          frames: frames
+          frames: deflatedFrames
         });
       }
-      //delete frames;
     }
   }
 
   buildFramesFor(clientId) {
     var otherClients = _(this.clients)
-      .filter(c => c.clientId != clientId)
-      ;
+      .filter(c => c.clientId != clientId);
 
     var frames = [];
     otherClients.each(c => {

@@ -1,7 +1,7 @@
 var pageResources;
 
-var camSize = { width: 320, height: 240 };
-var desiredFps = 20;
+var camSize = { width: 240, height:180 };
+var desiredFps = 15;
 var delayPerFrame = 1000 / desiredFps;
 var cameraQuality = 0.50;
 var debug = false;
@@ -28,38 +28,38 @@ function VideoDisplay(clientId, username) {
   this.el.appendChild(this.el_username = document.createElement('div'));
   this.el_username.className = 'username';
   this.el_username.innerText = this.username;
+}
 
-  this.detach = function() {
-    if(this.container) {
-      this.container.removeChild(this.el);
-      this.container = null;
-    }
+VideoDisplay.prototype.detach = function() {
+  if(this.container) {
+    this.container.removeChild(this.el);
+    this.container = null;
+  }
+}
+
+VideoDisplay.prototype.attach = function(container) {
+  if(this.container) {
+    this.detach();
   }
 
-  this.attach = function(container) {
-    if(this.container) {
-      this.detach();
-    }
+  container.appendChild(this.el);
+  this.container = container;
+}
 
-    container.appendChild(this.el);
-    this.container = container;
+VideoDisplay.prototype.updateName = function(username) {
+  if(username && this.username !== username) {
+    this.username = username
+    this.el_username.innerText = this.username;
   }
+}
 
-  this.updateName = function(username) {
-    if(username && this.username !== username) {
-      this.username = username
-      this.el_username.innerText = this.username;
-    }
-  }
-
-  this.updateFrame = function(frame) {
-    if(this.container) {
-      // No point updating the current frame if the display isn't attached to the document
-      if(frame === '') {
-        if(this.el_image.src != pageResources.offlineImage.src) this.el_image.src = pageResources.offlineImage.src;
-      } else {
-        this.el_image.src = frame;
-      }
+VideoDisplay.prototype.updateFrame = function(frame) {
+  if(this.container) {
+    // No point updating the current frame if the display isn't attached to the document
+    if(frame === '') {
+      if(this.el_image.src != pageResources.offlineImage.src) this.el_image.src = pageResources.offlineImage.src;
+    } else {
+      this.el_image.src = frame;
     }
   }
 }
@@ -98,7 +98,6 @@ function RoomLayout(container, localDisplay) {
       let remote = this.remoteDisplays[frame.clientId];
 
       if (!remote) {
-        // This is the first frame of a new video feed, so we need to create a new
         layoutChanged = true;
         remote = new VideoDisplay(frame.clientId, frame.username);
         this.remoteDisplays[frame.clientId] = remote;
@@ -181,19 +180,18 @@ function RoomLayout(container, localDisplay) {
   this.resized = function() {
     var containerSize = { width: this.container.clientWidth - 10, height: this.container.clientHeight - 10 };
 
-    // Calculate space available to each cell:
     var cellSize = {
       width: Math.floor(containerSize.width / this.currentFrameLayout.cols) - 20, // -20 for border components
       height: Math.floor(containerSize.height / this.currentFrameLayout.rows) - 20 //-20 for username label height
     };
 
+    if(cellSize.width > camSize.width * 2) cellSize.width = camSize.width * 2;
+
     if(cellSize.width / cellSize.height > camSize.width / camSize.height) {
-      // cell is squished vertically - reduce the width to match the aspect ratio of camSize.width / camSize.height:
       cellSize.width = cellSize.height * (camSize.width / camSize.height);
     }
 
     if (cellSize.height / cellSize.width > camSize.height / camSize.width) {
-      // cell is squished horizontally - reduce the height to match the aspect ratio of camSize.height / camSize.width;
       cellSize.height = cellSize.width * (camSize.height / camSize.width);
     }
 
@@ -313,7 +311,7 @@ window.addEventListener('load', function() {
 
   function captureCamera() {
     ctx.drawImage(pageResources.videoElement,0,0,camSize.width,camSize.height);
-    pageResources.localDisplay.updateFrame(pageResources.recordCanvas.toDataURL('image/jpeg', cameraQuality));
+    pageResources.localDisplay.updateFrame(pageResources.recordCanvas.toDataURL('image/jpeg', .85));
   }
 
   function captureCameraLoop() {
@@ -328,14 +326,11 @@ window.addEventListener('load', function() {
 
 
   pageResources.localDisplay = new VideoDisplay('local', username);
-  pageResources.localDisplay.updateFrame('');
-
-
   pageResources.roomLayout = new RoomLayout(pageResources.renderContainer, pageResources.localDisplay);
 
-
-
-
+  setTimeout(function() {
+    pageResources.localDisplay.updateFrame('');
+  }, 1);
 
 
   // Room server socket handling
@@ -399,17 +394,12 @@ window.addEventListener('load', function() {
 
     if (msg.messageType == 'frames') {
       frames = msg.frames;
+      frames = frames == [] ? frames : JSON.parse(pako.inflate(frames, { to: 'string' }));
+
       captureCamera();
       mainProc();
     }
   }
-
-
-
-
-
-
-
 
 
 

@@ -20,6 +20,7 @@
     "jquery": "^3.3.1",
     "eventEmitter": "^5.2.4",
     "underscore": "^1.8.3",
-    "promise-polyfill": "^7.1.2"
+    "promise-polyfill": "^7.1.2",
+    "pako": "^1.0.6"
   }
 }
