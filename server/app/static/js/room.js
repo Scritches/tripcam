@@ -1,13 +1,216 @@
+var pageResources;
+
+var camSize = { width: 320, height: 240 };
+var desiredFps = 20;
+var delayPerFrame = 1000 / desiredFps;
+var cameraQuality = 0.50;
+var debug = false;
+
+
+function VideoDisplay(clientId, username) {
+  console.log('new video display: ', clientId);
+  this.clientId = clientId;
+  this.username = username;
+
+  this.container = null;
+
+  this.el = document.createElement('div');
+  this.el.className = 'videoFrame';
+  this.el.id = clientId;
+
+  this.el.appendChild(this.el_frame = document.createElement('div'));
+  this.el_frame.className = 'frame';
+
+  this.el_frame.appendChild(this.el_image = new Image());
+  this.el_image.width = camSize.width;
+  this.el_image.height = camSize.height;
+
+  this.el.appendChild(this.el_username = document.createElement('div'));
+  this.el_username.className = 'username';
+  this.el_username.innerText = this.username;
+
+  this.detach = function() {
+    if(this.container) {
+      this.container.removeChild(this.el);
+      this.container = null;
+    }
+  }
+
+  this.attach = function(container) {
+    if(this.container) {
+      this.detach();
+    }
+
+    container.appendChild(this.el);
+    this.container = container;
+  }
+
+  this.updateName = function(username) {
+    if(username && this.username !== username) {
+      this.username = username
+      this.el_username.innerText = this.username;
+    }
+  }
+
+  this.updateFrame = function(frame) {
+    if(this.container) {
+      // No point updating the current frame if the display isn't attached to the document
+      if(frame === '') {
+        if(this.el_image.src != pageResources.offlineImage.src) this.el_image.src = pageResources.offlineImage.src;
+      } else {
+        this.el_image.src = frame;
+      }
+    }
+  }
+}
+
+
+
+var frameLayouts = function() {
+  var r = [];
+  r[0] = null;
+  for (var cams = 1; cams <= 16; cams++) {
+    switch (cams) {
+      case 1:
+      case 2:  r[cams] = { rows: 1, cols: 2 }; break;
+
+      case 3:
+      case 4:  r[cams] = { rows: 2, cols: 2 }; break;
+
+      case 5:
+      case 6:  r[cams] = { rows: 2, cols: 3 }; break;
+
+      case 7:
+      case 8:
+      case 9:  r[cams] = { rows: 3, cols: 3 }; break;
+
+      case 10:
+      case 11:
+      case 12: r[cams] = { rows: 3, cols: 4 }; break;
+
+      case 13:
+      case 14:
+      case 15:
+      case 16: r[cams] = { rows: 4, cols: 4 }; break;
+    }
+  }
+  return r;
+}();
+
+
+
+function RoomLayout(container, localDisplay) {
+  this.container = container;
+  this.localDisplay = localDisplay;
+  this.remoteDisplays = { };
+  var numDisplays = 0;
+
+  this.renderFrames = function(frames) {
+    var layoutChanged = false;
+
+    for (var i = 0; i < frames.length; i++) {
+      var frame = frames[i];
+      let remote = this.remoteDisplays[frame.clientId];
+
+      if (!remote) {
+        // This is the first frame of a new video feed, so we need to create a new
+        layoutChanged = true;
+        remote = new VideoDisplay(frame.clientId, frame.username);
+        this.remoteDisplays[frame.clientId] = remote;
+        numDisplays++;
+      }
+
+      remote.updateFrame(frame.frame);
+      remote.updateName(frame.username);
+    }
+
+    var currentClientIds = _.pluck(this.remoteDisplays, 'clientId');
+    var frameClientIds = _.pluck(frames, 'clientId');
+    var offline = _.difference(currentClientIds, frameClientIds);
+
+    for (var i = 0; i < offline.length; i++) {
+      layoutChanged = true;
+      let remote = this.remoteDisplays[offline[i]];
+      remote.detach();
+      delete this.remoteDisplays[offline[i]];
+      numDisplays--;
+    }
+
+    if (layoutChanged) {
+      this.layoutChanged();
+    }
+  };
+
+  this.currentFrameLayout = null;
+  this.currentLayout = null;
+  this.layoutChanged = function() {
+
+    var newFrameLayout = frameLayouts[numDisplays + 1];
+    if (this.currentFrameLayout == null && newFrameLayout == null) {
+      return;
+    }
+
+    // Create the new layout and assign video display elements to the cells
+    var newLayout = document.createElement('div');
+    newLayout.className = 'roomLayout';
+
+    var remoteDisplayIndex = 0;
+    var remoteDisplayClientIds = _.pluck(this.remoteDisplays, 'clientId');
+
+    for (var rowNum = 0; rowNum < newFrameLayout.rows; rowNum++) {
+      // Create row element
+      var row = document.createElement('div');
+      newLayout.appendChild(row);
+      row.className = 'feedRow';
+
+      for (var colNum = 0; colNum < newFrameLayout.cols; colNum++) {
+        // Create column element
+        var col = document.createElement('div');
+        row.appendChild(col);
+        col.className = 'feedCol';
+
+        // Populate cell
+        if (rowNum == 0 && colNum == 0) {
+          // This is where the local display needs to be homed.
+          this.localDisplay.attach(col);
+        } else {
+          // This cell belongs to a remote display.
+          if (remoteDisplayIndex < numDisplays) {
+            this.remoteDisplays[remoteDisplayClientIds[remoteDisplayIndex]].attach(col);
+            remoteDisplayIndex++;
+          } else {
+            new VideoDisplay('','').attach(col);
+          }
+        }
+      }
+
+    }
+
+    if (this.currentLayout) this.container.removeChild(this.currentLayout);
+    this.container.appendChild(newLayout);
+    this.currentLayout = newLayout;
+    this.currentFrameLayout = newFrameLayout;
+    this.resized();
+  }
+
+  this.resized = function() {
+
+  };
+
+
+}
+
+
+
+
+
+
+
+
 window.addEventListener('load', function() {
 
-  var camSize = { width: 320, height: 240 };
-  var desiredFps = 20;
-  var delayPerFrame = 1000 / desiredFps;
-  var cameraQuality = 0.5;
-  var debug = false;
-
   // Gather resources
-  var pageResources = {
+  pageResources = {
     offlineImage: document.getElementById('offline'),
     toggleCameraButton: document.getElementById('cameraToggle'),
     usernameElement: document.getElementById('username'),
@@ -18,11 +221,10 @@ window.addEventListener('load', function() {
     videoElement: document.createElement('video'),
     recordCanvas: document.createElement('canvas'),
 
-    remoteImages: []
+    //remoteDisplays: { }
+    localDisplay: null,
+    roomLayout: null
   };
-
-  // Prepare the record canvas
-  pageResources.renderContainer.appendChild(pageResources.recordCanvas);
 
   // Set up initial values for resources
   pageResources.videoElement.autoplay = true;
@@ -38,7 +240,7 @@ window.addEventListener('load', function() {
   // handle window resizing
   window.addEventListener('resize', doResize);
   function doResize() {
-    fixLayout();
+    pageResources.roomLayout.resized();
   }
 
   // Username handling functions
@@ -60,6 +262,8 @@ window.addEventListener('load', function() {
         messageType: 'changeName',
         username: username
       });
+
+      pageResources.localDisplay.updateName(username);
     }
   });
 
@@ -102,6 +306,7 @@ window.addEventListener('load', function() {
 
   function captureCamera() {
     ctx.drawImage(pageResources.videoElement,0,0,camSize.width,camSize.height);
+    pageResources.localDisplay.updateFrame(pageResources.recordCanvas.toDataURL('image/jpeg', cameraQuality));
   }
 
   function captureCameraLoop() {
@@ -110,8 +315,21 @@ window.addEventListener('load', function() {
       window.requestAnimationFrame(captureCameraLoop);
     } else {
       ctx.drawImage(pageResources.offlineImage,0,0,camSize.width,camSize.height);
+      pageResources.localDisplay.updateFrame('');
     }
   }
+
+
+  pageResources.localDisplay = new VideoDisplay('local', username);
+  pageResources.localDisplay.updateFrame('');
+
+
+  pageResources.roomLayout = new RoomLayout(pageResources.renderContainer, pageResources.localDisplay);
+
+
+
+
+
 
   // Room server socket handling
   var connected = false;
@@ -173,6 +391,13 @@ window.addEventListener('load', function() {
 
 
 
+
+
+
+
+
+
+
   function record() {
     if (connected && cameraResources.cameraOn) {
       var frameData = pageResources.recordCanvas.toDataURL('image/jpeg', cameraQuality);
@@ -183,42 +408,11 @@ window.addEventListener('load', function() {
     }
   }
 
-  var layoutWidth = camSize.width;
-  var layoutHeight = camSize.height;
-  function fixLayout() {
 
-  }
+
 
   function render() {
-    var didChangeLayout = false;
-
-    while (pageResources.remoteImages.length > frames.length) {
-      // We have too many images
-      pageResources.renderContainer.removeChild(pageResources.remoteImages[0]);
-      pageResources.remoteImages.splice(0, 1);
-      didChangeLayout = true;
-    }
-
-    while (pageResources.remoteImages.length < frames.length) {
-      // We don't have enough images
-      var newImg = new Image();
-      newImg.width = camSize.width;
-      newImg.height = camSize.height;
-      pageResources.remoteImages.push(newImg);
-      pageResources.renderContainer.appendChild(newImg);
-      didChangeLayout = true;
-    }
-
-    for (var i = 0; i < frames.length; i++) {
-      if (frames[i].frame == '') {
-        pageResources.remoteImages[i].src = pageResources.offlineImage.src;
-      } else {
-        pageResources.remoteImages[i].src = frames[i].frame;
-      }
-      pageResources.remoteImages[i].dataset.username = frames[i].username;
-    }
-
-    if (didChangeLayout) fixLayout();
+    pageResources.roomLayout.renderFrames(frames);
   }
 
   var lastProc = Date.now();
@@ -236,5 +430,6 @@ window.addEventListener('load', function() {
     window.requestAnimationFrame(mainProcLoop);
   }
 
-  fixLayout();
+  pageResources.roomLayout.layoutChanged();
+  pageResources.roomLayout.resized();
 });

@@ -131,11 +131,13 @@ class Room extends EventEmitter {
 
   buildFramesFor(clientId) {
     var otherClients = _(this.clients)
-      .filter(c => c.clientId != clientId);
+      .filter(c => c.clientId != clientId)
+      ;
 
     var frames = [];
     otherClients.each(c => {
       frames.push({
+        clientId: c.clientId,
         username: c.username,
         frame: c.lastFrame || ''
       });
