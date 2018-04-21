@@ -71,27 +71,12 @@ var frameLayouts = function() {
   r[0] = null;
   for (var cams = 1; cams <= 16; cams++) {
     switch (cams) {
-      case 1:
-      case 2:  r[cams] = { rows: 1, cols: 2 }; break;
-
-      case 3:
-      case 4:  r[cams] = { rows: 2, cols: 2 }; break;
-
-      case 5:
-      case 6:  r[cams] = { rows: 2, cols: 3 }; break;
-
-      case 7:
-      case 8:
-      case 9:  r[cams] = { rows: 3, cols: 3 }; break;
-
-      case 10:
-      case 11:
-      case 12: r[cams] = { rows: 3, cols: 4 }; break;
-
-      case 13:
-      case 14:
-      case 15:
-      case 16: r[cams] = { rows: 4, cols: 4 }; break;
+      case 1: case 2:                     r[cams] = { rows: 1, cols: 2 }; break;
+      case 3: case 4:                     r[cams] = { rows: 2, cols: 2 }; break;
+      case 5: case 6:                     r[cams] = { rows: 2, cols: 3 }; break;
+      case 7: case 8: case 9:             r[cams] = { rows: 3, cols: 3 }; break;
+      case 10: case 11: case 12:          r[cams] = { rows: 3, cols: 4 }; break;
+      case 13: case 14: case 15: case 16: r[cams] = { rows: 4, cols: 4 }; break;
     }
   }
   return r;
@@ -194,6 +179,41 @@ function RoomLayout(container, localDisplay) {
   }
 
   this.resized = function() {
+    // username label height: 20px
+
+    var containerSize = { width: this.container.clientWidth - 10, height: this.container.clientHeight - 10 };
+
+    // Calculate space available to each cell:
+    var cellSize = {
+      width: Math.floor(containerSize.width / this.currentFrameLayout.cols) - 10, // -10 for border components
+      height: Math.floor(containerSize.height / this.currentFrameLayout.rows) - 20 //-20 for username label height
+    };
+
+    if(cellSize.width / cellSize.height > camSize.width / camSize.height) {
+      // cell is squished vertically - reduce the width to match the aspect ratio of camSize.width / camSize.height:
+      cellSize.width = cellSize.height * (camSize.width / camSize.height);
+    }
+
+    if (cellSize.height / cellSize.width > camSize.height / camSize.width) {
+      // cell is squished horizontally - reduce the height to match the aspect ratio of camSize.height / camSize.width;
+      cellSize.height = cellSize.width * (camSize.height / camSize.width);
+    }
+
+
+
+    var imgs = this.container.getElementsByTagName('img');
+    for (var i = 0; i < imgs.length; i++) {
+      imgs[i].width = cellSize.width;
+      imgs[i].height = cellSize.height;
+    }
+
+    //this.localDisplay.el_image.width = cellSize.width;
+    //this.localDisplay.el_image.height = cellSize.height;
+
+    //_.each(this.remoteDisplays, d => {
+      //d.el_image.width = cellSize.width;
+      //d.el_image.height = cellSize.height;
+    //})
 
   };
 
