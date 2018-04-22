@@ -6,6 +6,9 @@ var delayPerFrame = 1000 / desiredFps;
 var cameraQuality = 0.50;
 var debug = false;
 
+var forceKeyframeMS = 2500;
+var diffFactorBeforeKeyframe = 4;
+
 
 function VideoDisplay(clientId, username) {
   if(debug) console.log('new video display: ', clientId);
@@ -355,7 +358,8 @@ window.addEventListener('load', function() {
   var compressedSent = 0;
   var doKeyframe = true;
   var didKeyframe = false;
-  setInterval(function() { doKeyframe = true; }, 2500);
+
+  if(forceKeyframeMS != -1)  setInterval(function() { doKeyframe = true; }, forceKeyframeMS);
 
   var diffCanvas = document.createElement('canvas');
   diffCanvas.width = camSize.width;
@@ -433,9 +437,11 @@ window.addEventListener('load', function() {
         ? Math.floor(bytesRcvd / 1024) + ' KB recv'
         : bytesRcvd + ' bytes recv';
 
+      var cpFactor = Math.floor(compressedSent / bytesSent * 100);
+
       var compStr = compressedSent > 2048
-        ? Math.floor(compressedSent / 1024) + ' KB comp'
-        : compressedSent + ' bytes comp';
+        ? Math.floor(compressedSent / 1024) + ' KB comp - ' + cpFactor + '%'
+        : compressedSent + ' bytes comp - ' + cpFactor + '%';
 
       pageResources.bpsDisplay.innerText = ' ' + sentStr + ' - ' + recvStr + ' - ' + compStr;
     }
@@ -526,7 +532,7 @@ window.addEventListener('load', function() {
 
         //console.log();
         var diffFactor = diffSum / data.data.length;
-        if (diffFactor > 2.2) doKeyframe = true;
+        if (diffFactor > diffFactorBeforeKeyframe) doKeyframe = true;
 
 
         diffContext.putImageData(diffFrameData, 0, 0);
