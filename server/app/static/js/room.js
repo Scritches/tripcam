@@ -1,6 +1,6 @@
 var pageResources;
 
-var camSize = { width: 240, height:180 };
+var camSize = { width: 320, height:240 };
 var desiredFps = 15;
 var delayPerFrame = 1000 / desiredFps;
 var cameraQuality = 0.50;
@@ -345,10 +345,54 @@ window.addEventListener('load', function() {
     }
   });
 
+
+  // function captureCamera() {
+  //   ctx.drawImage(pageResources.videoElement,0,0,camSize.width,camSize.height);
+  //   pageResources.localDisplay.updateFrame(pageResources.recordCanvas.toDataURL('image/jpeg', .85));
+  // }
+
+
+  var compressedSent = 0;
+  var doKeyframe = true;
+  var didKeyframe = false;
+  setInterval(function() { doKeyframe = true; }, 2500);
+
+  var diffCanvas = document.createElement('canvas');
+  diffCanvas.width = camSize.width;
+  diffCanvas.height = camSize.height;
+  var diffContext = diffCanvas.getContext('2d');
+
+  var keyFrameCanvas = document.createElement('canvas');
+  keyFrameCanvas.width = camSize.width;
+  keyFrameCanvas.height = camSize.height;
+  var keyFrameContext = keyFrameCanvas.getContext('2d');
+
+  var restoreImage = new Image();
+  var restoreCanvas = document.createElement('canvas');
+  restoreCanvas.width = camSize.width;
+  restoreCanvas.height = camSize.height;
+  var restoreContext = restoreCanvas.getContext('2d');
+
+  pageResources.renderContainer.appendChild(keyFrameCanvas);
+  pageResources.renderContainer.appendChild(diffCanvas);
+  pageResources.renderContainer.appendChild(restoreCanvas);
+
+
   function captureCamera() {
     ctx.drawImage(pageResources.videoElement,0,0,camSize.width,camSize.height);
     pageResources.localDisplay.updateFrame(pageResources.recordCanvas.toDataURL('image/jpeg', .85));
   }
+
+
+
+
+
+
+
+
+
+
+
 
   function captureCameraLoop() {
     if (cameraResources.cameraOn) {
@@ -389,11 +433,16 @@ window.addEventListener('load', function() {
         ? Math.floor(bytesRcvd / 1024) + ' KB recv'
         : bytesRcvd + ' bytes recv';
 
-      pageResources.bpsDisplay.innerText = ' ' + sentStr + ' - ' + recvStr;
+      var compStr = compressedSent > 2048
+        ? Math.floor(compressedSent / 1024) + ' KB comp'
+        : compressedSent + ' bytes comp';
+
+      pageResources.bpsDisplay.innerText = ' ' + sentStr + ' - ' + recvStr + ' - ' + compStr;
     }
 
     bytesSent = 0;
     bytesRcvd = 0;
+    compressedSent = 0;
   }, 1000);
 
   function sendMessage(msg) {
@@ -448,8 +497,73 @@ window.addEventListener('load', function() {
         messageType: 'frame',
         frame: frameData
       });
+
+
+      var data = ctx.getImageData(0,0,camSize.width,camSize.height);
+
+      if (doKeyframe) {
+        doKeyframe = false;
+        keyFrameContext.putImageData(data, 0, 0);
+        var keyFrameDataUrl = keyFrameCanvas.toDataURL('image/jpeg', cameraQuality);
+        compressedSent += keyFrameDataUrl.length;
+        restoreImage.src = keyFrameDataUrl;
+        didKeyframe = true;
+      } else {
+        var kfData = keyFrameContext.getImageData(0,0,camSize.width, camSize.height);
+
+        var diffFrameData = diffContext.getImageData(0,0,camSize.width, camSize.height);
+        var diffSum = 0;
+        for (var i = 0; i < data.data.length; i++) {
+          if ((i+1) % 4 == 0) {
+            diffFrameData.data[i] = 255;
+          } else {
+            var pixelDiff = Math.floor((data.data[i] - kfData.data[i]) / 2);
+            var absDiff = Math.abs(pixelDiff);
+            diffSum += absDiff;
+            diffFrameData.data[i] = pixelDiff + 128;
+          }
+        }
+
+        //console.log();
+        var diffFactor = diffSum / data.data.length;
+        if (diffFactor > 2.2) doKeyframe = true;
+
+
+        diffContext.putImageData(diffFrameData, 0, 0);
+        var diffDataUrl = diffCanvas.toDataURL('image/jpeg', cameraQuality * .75);
+        compressedSent += diffDataUrl.length;
+
+        restoreImage.src = diffDataUrl;
+      }
+
+
+
     }
   }
+
+
+  restoreImage.addEventListener('load', function() {
+    if(didKeyframe) {
+      restoreContext.drawImage(restoreImage, 0,0,camSize.width, camSize.height);
+      didKeyframe = false;
+    } else {
+      diffContext.drawImage(restoreImage, 0,0,camSize.width, camSize.height);
+      var kfData = keyFrameContext.getImageData(0,0,camSize.width, camSize.height);
+      var diffdata = diffContext.getImageData(0,0,camSize.width,camSize.height);
+
+      var restoreFrameData = restoreContext.getImageData(0,0,camSize.width, camSize.height);
+      for (var i = 0; i < diffdata.data.length; i++) {
+        if ((i+1) % 4 == 0) {
+          restoreFrameData.data[i] = 255;
+        } else {
+          var pixel = 2 * (diffdata.data[i] - 128) + kfData.data[i];
+          restoreFrameData.data[i] = pixel;
+        }
+      }
+
+      restoreContext.putImageData(restoreFrameData, 0, 0);
+    }
+  });
 
 
   var lastProc = Date.now();
