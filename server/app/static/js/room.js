@@ -3,7 +3,7 @@ var pageResources;
 var camSize = { width: 320, height:240 };
 var desiredFps = 15;
 var delayPerFrame = 1000 / desiredFps;
-var cameraQuality = 0.50;
+var cameraQuality = 0.75;
 var debug = false;
 
 var forceKeyframeMS = 1500;
@@ -60,7 +60,6 @@ function VideoDisplay(clientId, username) {
   this.diffFrameCanvas.height = camSize.height;
   this.diffFrameContext = this.diffFrameCanvas.getContext('2d');
 }
-
 
 VideoDisplay.prototype = _.clone(EventEmitter.prototype);
 
@@ -489,18 +488,11 @@ window.addEventListener('load', function() {
         ? Math.floor(bytesRcvd / 1024) + ' KB recv'
         : bytesRcvd + ' bytes recv';
 
-      var cpFactor = Math.floor(compressedSent / bytesSent * 100);
-
-      var compStr = compressedSent > 2048
-        ? Math.floor(compressedSent / 1024) + ' KB comp - ' + cpFactor + '%'
-        : compressedSent + ' bytes comp - ' + cpFactor + '%';
-
-      pageResources.bpsDisplay.innerText = ' ' + sentStr + ' - ' + recvStr + ' - ' + compStr;
+      pageResources.bpsDisplay.innerText = ' ' + sentStr + ' - ' + recvStr;
     }
 
     bytesSent = 0;
     bytesRcvd = 0;
-    compressedSent = 0;
   }, 1000);
 
   function sendMessage(msg) {
@@ -556,13 +548,12 @@ window.addEventListener('load', function() {
         doKeyframe = false;
         keyFrameContext.putImageData(data, 0, 0);
         var keyFrameDataUrl = keyFrameCanvas.toDataURL('image/jpeg', cameraQuality);
-        compressedSent += keyFrameDataUrl.length;
 
         sendMessage({
           messageType: 'frame',
           frame: {
             isKeyframe: true,
-            index: ++index,
+            index: ++keyframeIndex,
             data: keyFrameDataUrl
           }
         });
@@ -590,7 +581,6 @@ window.addEventListener('load', function() {
 
         diffContext.putImageData(diffFrameData, 0, 0);
         var diffDataUrl = diffCanvas.toDataURL('image/jpeg', cameraQuality * .75);
-        compressedSent += diffDataUrl.length;
 
         sendMessage({
           messageType: 'frame',
