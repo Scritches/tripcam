@@ -6,8 +6,7 @@ var delayPerFrame = 1000 / desiredFps;
 var cameraQuality = 0.75;
 var debug = false;
 
-var forceKeyframeMS = 1500;
-var diffFactorBeforeKeyframe = 3;
+var forceKeyframeMS = 500;
 
 
 function VideoDisplay(clientId, username) {
@@ -38,27 +37,22 @@ function VideoDisplay(clientId, username) {
   }.bind(this);
 
 
-  this.doingKeyframe = false;
-  this.lastKeyframeIndex = -1;
-
   this.keyFrameCanvas = document.createElement('canvas');
   this.keyFrameCanvas.width = camSize.width;
   this.keyFrameCanvas.height = camSize.height;
   this.keyFrameContext = this.keyFrameCanvas.getContext('2d');
   this.keyFrameData = null;
 
-  this.diffImage = new Image();
-  this.diffImage.width = camSize.width;
-  this.diffImage.height = camSize.height;
-  //this.diffImageLoadHandler = this.decompressDiff.bind(this);
-  this.diffImageLoadHandler = function() {
-    this.decompressDiff();
-  }.bind(this);
-
   this.diffFrameCanvas = document.createElement('canvas');
   this.diffFrameCanvas.width = camSize.width;
   this.diffFrameCanvas.height = camSize.height;
-  this.diffFrameContext = this.diffFrameCanvas.getContext('2d');
+  this.diffFrameGlsl = new GlslCanvas(this.diffFrameCanvas, { preserveDrawingBuffer: true });
+  this.diffFrameGlsl.width = camSize.width;
+  this.diffFrameGlsl.height = camSize.height;
+
+  this.diffFrameGlsl.load(decompressShader());
+
+  pageResources.renderContainer.appendChild(this.diffFrameCanvas);
 }
 
 VideoDisplay.prototype = _.clone(EventEmitter.prototype);
@@ -66,7 +60,6 @@ VideoDisplay.prototype = _.clone(EventEmitter.prototype);
 VideoDisplay.prototype.detach = function() {
   if(this.container) {
     this.el_image.removeEventListener('dblclick', this.imageDblClickHandler);
-    this.diffImage.removeEventListener('load', this.diffImageLoadHandler);
     this.container.removeChild(this.el);
     this.container = null;
     this.hasKeyframe = false;
@@ -82,43 +75,12 @@ VideoDisplay.prototype.attach = function(container) {
   this.container = container;
 
   this.el_image.addEventListener('dblclick', this.imageDblClickHandler);
-  this.diffImage.addEventListener('load', this.diffImageLoadHandler);
 }
 
 VideoDisplay.prototype.updateName = function(username) {
   if(username && this.username !== username) {
     this.username = username
     this.el_username.innerText = this.username;
-  }
-}
-
-VideoDisplay.prototype.decompressDiff = function() {
-  if(this.doingKeyframe == true) {
-    this.doingKeyframe = false;
-    // Draw the keyframe to the keyframe canvas
-    this.keyFrameContext.drawImage(this.diffImage, 0, 0, camSize.width, camSize.height);
-    this.keyFrameData = this.keyFrameContext.getImageData(0, 0, camSize.width, camSize.height);
-
-    // Also draw the keyframe to the output image
-    this.el_image.src = this.diffImage.src;
-  } else {
-    // Draw the diff frame to the diff canvas and pull out its pixel data
-    this.diffFrameContext.drawImage(this.diffImage, 0, 0, camSize.width, camSize.height);
-    var diffFrameData = this.diffFrameContext.getImageData(0, 0, camSize.width, camSize.height);
-
-    // Decompress the diff pixel using the current keyframe.
-    for (var i = 0; i < diffFrameData.data.length; i += 4) {
-      diffFrameData.data[i]     = 2 * (diffFrameData.data[i] - 128) + this.keyFrameData.data[i];
-      diffFrameData.data[i + 1] = 2 * (diffFrameData.data[i + 1] - 128) + this.keyFrameData.data[i + 1];
-      diffFrameData.data[i + 2] = 2 * (diffFrameData.data[i + 2] - 128) + this.keyFrameData.data[i + 2];
-      diffFrameData.data[i + 3] = 255;
-    }
-
-    // Write the decompressed pixel data into the diff frame context.
-    this.diffFrameContext.putImageData(diffFrameData, 0, 0);
-
-    // Now draw the decompressed frame to the output image.
-    this.el_image.src = this.diffFrameCanvas.toDataURL('image/png', 1);
   }
 }
 
@@ -133,20 +95,17 @@ VideoDisplay.prototype.updateFrame = function(frame, isLocal) {
         return;
       }
 
-      if (this.doingKeyframe == true) {
-        // Uh oh. We got a keyframe earlier but haven't actually updated the keyframe canvas yet.
-        // I guess we have to swallow this frame. I wonder how often this will happen in practice.
-        console.log("swallowed a frame");
+      if (!this.keyFrameData && !frame.isKeyframe) return;
+      if (frame.isKeyframe) {
+        this.keyFrameData = frame.data;
+        this.el_image.src = frame.data;
         return;
       }
 
-      if (!this.keyFrameData && !frame.isKeyframe) return;
-
-      if (frame.isKeyframe) {
-        this.doingKeyframe = true;
-      }
-
-      this.diffImage.src = frame.data;
+      this.diffFrameGlsl.setUniform('u_keyframe', this.keyFrameData);
+      this.diffFrameGlsl.setUniform('u_diffframe', frame.data);
+      console.log(frame.data);
+      this.el_image.src = this.diffFrameCanvas.toDataURL('image/jpeg', cameraQuality);
     }
   }
 }
@@ -423,31 +382,10 @@ window.addEventListener('load', function() {
   });
 
 
-
-  var doKeyframe = true;
-
-  if(forceKeyframeMS != -1)  setInterval(function() { doKeyframe = true; }, forceKeyframeMS);
-
-  var diffCanvas = document.createElement('canvas');
-  diffCanvas.width = camSize.width;
-  diffCanvas.height = camSize.height;
-  var diffContext = diffCanvas.getContext('2d');
-
-  var keyFrameCanvas = document.createElement('canvas');
-  keyFrameCanvas.width = camSize.width;
-  keyFrameCanvas.height = camSize.height;
-  var keyFrameContext = keyFrameCanvas.getContext('2d');
-
-  //pageResources.renderContainer.appendChild(keyFrameCanvas);
-  //pageResources.renderContainer.appendChild(diffCanvas);
-
-
   function captureCamera() {
     ctx.drawImage(pageResources.videoElement,0,0,camSize.width,camSize.height);
     pageResources.localDisplay.updateFrame(pageResources.recordCanvas.toDataURL('image/jpeg', .85), true);
   }
-
-
 
   function captureCameraLoop() {
     if (cameraResources.cameraOn) {
@@ -458,7 +396,6 @@ window.addEventListener('load', function() {
       pageResources.localDisplay.updateFrame('');
     }
   }
-
 
   pageResources.localDisplay = new VideoDisplay('local', username);
   pageResources.roomLayout = new RoomLayout(pageResources.renderContainer, pageResources.localDisplay);
@@ -539,15 +476,44 @@ window.addEventListener('load', function() {
   }
 
 
+
+
+  var doKeyframe = true;
+
+  if(forceKeyframeMS != -1)  setInterval(function() { doKeyframe = true; }, forceKeyframeMS);
+
+  var diffCanvas = document.createElement('canvas');
+  diffCanvas.width = camSize.width;
+  diffCanvas.height = camSize.height;
+  var diffGlsl = new GlslCanvas(diffCanvas, { preserveDrawingBuffer: true });
+  diffGlsl.width = camSize.width;
+  diffGlsl.height = camSize.height;
+
+  diffGlsl.load(compressShader());
+
+  var keyFrameCanvas = document.createElement('canvas');
+  keyFrameCanvas.width = camSize.width;
+  keyFrameCanvas.height = camSize.height;
+  var keyFrameContext = keyFrameCanvas.getContext('2d');
+
+  pageResources.renderContainer.appendChild(keyFrameCanvas);
+  pageResources.renderContainer.appendChild(diffCanvas);
+  var asdfImage = new Image();
+  asdfImage.width = camSize.width;
+  asdfImage.height = camSize.height;
+  pageResources.renderContainer.appendChild(asdfImage);
+
+
   var keyframeIndex = 0;
+  var keyFrameDataUrl;
+
   function record() {
     if (connected && cameraResources.cameraOn) {
-      var data = ctx.getImageData(0,0,camSize.width,camSize.height);
-
       if (doKeyframe) {
         doKeyframe = false;
+        var data = ctx.getImageData(0,0,camSize.width,camSize.height);
         keyFrameContext.putImageData(data, 0, 0);
-        var keyFrameDataUrl = keyFrameCanvas.toDataURL('image/jpeg', cameraQuality);
+        keyFrameDataUrl = keyFrameCanvas.toDataURL('image/jpeg', cameraQuality);
 
         sendMessage({
           messageType: 'frame',
@@ -558,29 +524,10 @@ window.addEventListener('load', function() {
           }
         });
       } else {
-        var kfData = keyFrameContext.getImageData(0,0,camSize.width, camSize.height);
-
-        var diffFrameData = diffContext.getImageData(0,0,camSize.width, camSize.height);
-        var diffSum = 0;
-        for (var i = 0; i < data.data.length; i += 4) {
-          var r = Math.floor((data.data[i] - kfData.data[i]) / 2);
-          var g = Math.floor((data.data[i + 1] - kfData.data[i + 1]) / 2);
-          var b = Math.floor((data.data[i + 2] - kfData.data[i + 2]) / 2);
-
-          diffFrameData.data[i]     = r + 128;
-          diffFrameData.data[i + 1] = g + 128;
-          diffFrameData.data[i + 2] = b + 128;
-          diffFrameData.data[i + 3] = 255;
-
-          diffSum += Math.abs(r) + Math.abs(g) + Math.abs(b);
-        }
-
-        var diffFactor = diffSum / data.data.length;
-        if (diffFactor > diffFactorBeforeKeyframe) doKeyframe = true;
-
-
-        diffContext.putImageData(diffFrameData, 0, 0);
+        diffGlsl.setUniform('u_currentframe', pageResources.recordCanvas.toDataURL('image/jpeg', cameraQuality));
+        diffGlsl.setUniform('u_keyframe', keyFrameDataUrl);
         var diffDataUrl = diffCanvas.toDataURL('image/jpeg', cameraQuality * .75);
+        asdfImage.src = diffDataUrl;
 
         sendMessage({
           messageType: 'frame',
@@ -613,3 +560,40 @@ window.addEventListener('load', function() {
   pageResources.roomLayout.layoutChanged();
   pageResources.roomLayout.resized();
 });
+
+
+function compressShader() {
+  return `
+  precision highp float;
+
+  uniform sampler2D u_keyframe;
+  uniform sampler2D u_currentframe;
+  uniform vec2 u_resolution;
+
+  void main() {
+    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+    vec3 kfcolor = texture2D(u_keyframe, st).rgb;
+    vec3 cfcolor = texture2D(u_currentframe, st).rgb;
+    vec3 dfcolor = ((cfcolor - kfcolor) / 2.0) + 0.5;
+
+    gl_FragColor = vec4(dfcolor, 1.0);
+  }`;
+}
+
+function decompressShader() {
+  return `
+  precision highp float;
+
+  uniform sampler2D u_keyframe;
+  uniform sampler2D u_diffframe;
+  uniform vec2 u_resolution;
+
+  void main() {
+    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+    vec3 kfcolor = texture2D(u_keyframe, st).rgb;
+    vec3 dfcolor = texture2D(u_diffframe, st).rgb;
+    vec3 cfcolor = (2.0 * (dfcolor - 0.5)) + kfcolor;
+
+    gl_FragColor = vec4(cfcolor, 1.0);
+  }`;
+}
