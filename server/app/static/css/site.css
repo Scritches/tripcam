@@ -43,6 +43,7 @@ body {
 
 .frame {
   position:relative;
+  margin: auto;
 }
 
 .frame .camButton {

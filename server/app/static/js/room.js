@@ -26,7 +26,7 @@ function VideoDisplay(clientId, username) {
   this.el_image.width = camSize.width;
   this.el_image.height = camSize.height;
 
-  this.el.appendChild(this.el_username = document.createElement('div'));
+  this.el_frame.appendChild(this.el_username = document.createElement('div'));
   this.el_username.className = 'username';
   this.el_username.innerText = this.username;
 
@@ -41,7 +41,6 @@ function VideoDisplay(clientId, username) {
     this.el_camButton.className = 'camButton';
     this.el_camButton.setAttribute('title', 'Click to toggle your camera.');
   }
-
 
   this.usernameClickHandler = function() {
     this.emit('usernameClicked', this);
@@ -259,12 +258,7 @@ function RoomLayout(container, localDisplay) {
     for (var i = 0; i < imgs.length; i++) {
       imgs[i].width = cellSize.width;
       imgs[i].height = cellSize.height;
-    }
-
-    var nameLabels = document.querySelectorAll('.username');
-    for (var i = 0; i < nameLabels.length; i++) {
-      //nameLabels[i].style.width = cellSize.width;
-      nameLabels[i].setAttribute('style', 'width: ' + cellSize.width + 'px;');
+      imgs[i].parentElement.setAttribute('style', 'width: ' + cellSize.width + 'px; height: ' + cellSize.height + ';');
     }
   };
 
