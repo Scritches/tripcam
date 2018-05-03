@@ -22,6 +22,7 @@ function VideoDisplay(clientId, username) {
   this.el_frame.className = 'frame';
 
   this.el_frame.appendChild(this.el_image = new Image());
+  this.el_image.className = 'video';
   this.el_image.width = camSize.width;
   this.el_image.height = camSize.height;
 
@@ -29,8 +30,29 @@ function VideoDisplay(clientId, username) {
   this.el_username.className = 'username';
   this.el_username.innerText = this.username;
 
+  if (clientId == 'local') {
+    this.el_username.className = 'username localDisplay';
+    this.el_username.setAttribute('title', 'Click to edit your name.');
+
+    this.el_frame.appendChild(this.el_camButton = new Image());
+    this.el_camButton.width = 32;
+    this.el_camButton.height = 32;
+    this.el_camButton.src = '/images/video-camera-icon.png';
+    this.el_camButton.className = 'camButton';
+    this.el_camButton.setAttribute('title', 'Click to toggle your camera.');
+  }
+
+
+  this.usernameClickHandler = function() {
+    this.emit('usernameClicked', this);
+  }.bind(this);
+
   this.imageDblClickHandler = function() {
     this.emit('dblclick', this);
+  }.bind(this);
+
+  this.toggleCameraClickHandler = function() {
+    this.emit('toggleCameraClicked', this);
   }.bind(this);
 }
 
@@ -39,6 +61,10 @@ VideoDisplay.prototype = _.clone(EventEmitter.prototype);
 VideoDisplay.prototype.detach = function() {
   if(this.container) {
     this.el_image.removeEventListener('dblclick', this.imageDblClickHandler);
+    if(this.clientId == 'local') {
+      this.el_username.removeEventListener('click', this.usernameClickHandler);
+      this.el_camButton.removeEventListener('click', this.toggleCameraClickHandler);
+    }
     this.container.removeChild(this.el);
     this.container = null;
   }
@@ -53,6 +79,10 @@ VideoDisplay.prototype.attach = function(container) {
   this.container = container;
 
   this.el_image.addEventListener('dblclick', this.imageDblClickHandler);
+  if(this.clientId == 'local') {
+    this.el_username.addEventListener('click', this.usernameClickHandler);
+    this.el_camButton.addEventListener('click', this.toggleCameraClickHandler);
+  }
 }
 
 VideoDisplay.prototype.updateName = function(username) {
@@ -225,7 +255,7 @@ function RoomLayout(container, localDisplay) {
       cellSize.height = cellSize.width * (camSize.height / camSize.width);
     }
 
-    var imgs = this.container.getElementsByTagName('img');
+    var imgs = this.container.getElementsByClassName('video');
     for (var i = 0; i < imgs.length; i++) {
       imgs[i].width = cellSize.width;
       imgs[i].height = cellSize.height;
@@ -254,11 +284,7 @@ window.addEventListener('load', function() {
   pageResources = {
     bodyElement: document.getElementsByTagName('body')[0],
     offlineImage: document.getElementById('offline'),
-    toggleCameraButton: document.getElementById('cameraToggle'),
-    usernameElement: document.getElementById('username'),
-    usernameChangeButton: document.getElementById('changeUsername'),
     renderContainer: document.getElementById('roomFeed'),
-    bpsDisplay: document.getElementById('bps'),
 
     videoElement: document.createElement('video'),
     recordCanvas: document.createElement('canvas'),
@@ -287,15 +313,10 @@ window.addEventListener('load', function() {
   // Username handling functions
   var username = window.localStorage.getItem('username') || generateName();
 
-  function updateUsernameDisplay() {
-    pageResources.usernameElement.innerText = '[ ' + username + ' ] ';
-  }
-
-  pageResources.usernameChangeButton.addEventListener('click', function() {
+  function getNewUsername() {
     var newName = window.prompt('Enter a new username:', username)
     if (newName && newName != username) {
       username = newName;
-      updateUsernameDisplay();
 
       window.localStorage.setItem('username', username);
 
@@ -306,9 +327,7 @@ window.addEventListener('load', function() {
 
       pageResources.localDisplay.updateName(username);
     }
-  });
-
-  updateUsernameDisplay();
+  }
 
   // local camera handling
   var cameraResources = {
@@ -316,34 +335,30 @@ window.addEventListener('load', function() {
     stream: null
   };
 
-  pageResources.toggleCameraButton.addEventListener('click', function() {
-    pageResources.toggleCameraButton.disabled = true;
-    if (!cameraResources.cameraOn) {
-      navigator.mediaDevices.getUserMedia({
-        video: { width: camSize.width, height: camSize.height },
-        audio: false
-      }).then(function(stream) {
-        pageResources.videoElement.srcObject = cameraResources.stream = stream;
-        pageResources.toggleCameraButton.innerText = 'Turn Camera Off';
-        cameraResources.cameraOn = true;
-        pageResources.toggleCameraButton.disabled = false;
-        window.requestAnimationFrame(captureCameraLoop);
-      },function(error) {
-        console.log(error);
-        pageResources.toggleCameraButton.disabled = false;
-      });
-    } else {
+  function turnCameraOn() {
+    navigator.mediaDevices.getUserMedia({
+      video: { width: camSize.width, height: camSize.height },
+      audio: false
+    }).then(function(stream) {
+      pageResources.videoElement.srcObject = cameraResources.stream = stream;
+      cameraResources.cameraOn = true;
+      window.requestAnimationFrame(captureCameraLoop);
+    },function(error) {
+      console.log(error);
+    });
+  }
+
+  function turnCameraOff() {
+    if (cameraResources.cameraOn) {
       pageResources.videoElement.srcObject = null;
       cameraResources.stream.getTracks().forEach(function(t) { t.stop(); });
       cameraResources.stream = null;
-      pageResources.toggleCameraButton.innerText = 'Turn Camera On';
       cameraResources.cameraOn = false;
-      pageResources.toggleCameraButton.disabled = false;
       if (connected) sendMessage({
         messageType: 'cameraOff'
       });
     }
-  });
+  }
 
   function captureCamera() {
     ctx.drawImage(pageResources.videoElement,0,0,camSize.width,camSize.height);
@@ -362,6 +377,19 @@ window.addEventListener('load', function() {
 
 
   pageResources.localDisplay = new VideoDisplay('local', username);
+
+  pageResources.localDisplay.on('usernameClicked', function() {
+    getNewUsername();
+  });
+
+  pageResources.localDisplay.on('toggleCameraClicked', function() {
+    if (!cameraResources.cameraOn) {
+      turnCameraOn();
+    } else {
+      turnCameraOff();
+    }
+  })
+
   pageResources.roomLayout = new RoomLayout(pageResources.renderContainer, pageResources.localDisplay);
 
   setTimeout(function() {
@@ -376,25 +404,24 @@ window.addEventListener('load', function() {
 
   var bytesSent = 0;
   var bytesRcvd = 0;
-  setInterval(function() {
-    if(!connected) {
-      frames = [];
-      pageResources.bpsDisplay.innerText = ' * Disconnected *';
-    } else {
-      var sentStr = bytesSent > 2048
-        ? Math.floor(bytesSent / 1024) + ' KB sent'
-        : bytesSent + ' bytes sent';
+  if (debug) {
+    setInterval(function() {
+      if(connected) {
+        var sentStr = bytesSent > 2048
+          ? Math.floor(bytesSent / 1024) + ' KBps sent'
+          : bytesSent + ' bps sent';
 
-      var recvStr = bytesRcvd > 2048
-        ? Math.floor(bytesRcvd / 1024) + ' KB recv'
-        : bytesRcvd + ' bytes recv';
+        var recvStr = bytesRcvd > 2048
+          ? Math.floor(bytesRcvd / 1024) + ' KBps recv'
+          : bytesRcvd + ' bps recv';
 
-      pageResources.bpsDisplay.innerText = ' ' + sentStr + ' - ' + recvStr;
-    }
+        console.log(sentStr + ' - ' + recvStr);
+      }
 
-    bytesSent = 0;
-    bytesRcvd = 0;
-  }, 1000);
+      bytesSent = 0;
+      bytesRcvd = 0;
+    }, 1000);
+  }
 
   function sendMessage(msg) {
     if (debug) console.log('-> ', msg);
@@ -413,6 +440,8 @@ window.addEventListener('load', function() {
   socket.onclose = function() {
     connected = false;
     pageResources.bodyElement.style.backgroundColor = '#990000';
+    frames = [];
+    turnCameraOff();
   }
 
   socket.onmessage = function(e) {

@@ -3,22 +3,27 @@ body {
   color: #c6c0d1;
 }
 
-#ui {
-  border-bottom: 3px solid;
-  padding-bottom: 5px;
-}
-
 #roomFeed {
   position: absolute;
-  top: 45px;
+  top: 12px;
   bottom: 12px;
   left: 8px;
-  right: 8px;
+  right: 258px;
   background-color: #121e2a;
 }
 
+#chat {
+  float: right;
+  display:block;
+  width: 250px;
+  height: 100%;
+}
+
+#chat>div {
+  margin-left: 15px;
+}
+
 .roomLayout {
-  position: absolute;
   display: flex;
   flex-flow: column;
   height: 100%;
@@ -36,10 +41,25 @@ body {
   flex-grow: 1;
 }
 
-.frame img {
+.frame {
+  position:relative;
+}
+
+.frame .camButton {
+  position:absolute;
+  top: 0px;
+  left: 0px;
+}
+
+.camButton:hover {
+  cursor: pointer;
+}
+
+.frame .video {
   display:block;
   margin-left: auto;
   margin-right: auto;
+  border: 1px solid #222e3a;
 }
 
 .username {
@@ -49,4 +69,12 @@ body {
   height: 20px;
   margin-left: auto;
   margin-right: auto;
+  background-color: #222e3a;
+  border: 1px solid #222e3a;
+}
+
+.username.localDisplay:hover {
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: bold;
 }

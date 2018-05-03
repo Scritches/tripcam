@@ -2,15 +2,11 @@ extends layout
 
 block content
   img#offline(src='/images/offline.png', style='display:none')
-  div#ui
-    span#roomid Room [ #{roomid} ] - 
-    span Username: 
-    span#username [ asdqwe ] 
-    button#changeUsername Change Username
-    span &nbsp;&nbsp;
-    button#cameraToggle Turn Camera On
-    span#bps
   div#roomFeed
+  div#chat
+    div#contents
+      div#roomid Room [ #{roomid} ]
+      
   
   script(src='/bower_components/promise-polyfill/dist/polyfill.js')
   script(src='/js/mediaDevices-getUserMedia-polyfill.js')
