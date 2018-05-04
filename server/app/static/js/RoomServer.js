@@ -41,7 +41,9 @@ RoomServer.prototype.connect = function(username) {
 
     if (msg.messageType == 'frames') {
       var frames = msg.frames;
-      frames = frames == [] ? frames : JSON.parse(pako.inflate(frames, { to: 'string' }));
+      if (useCompression && frames) {
+        frames = JSON.parse(pako.inflate(frames, { to: 'string' }));
+      }
 
       this.emit('new-frames', frames);
     }

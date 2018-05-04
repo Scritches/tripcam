@@ -107,7 +107,7 @@ class Room extends EventEmitter {
   handleConnect(username, client) {
     client.sendMessage({
       messageType: 'hello',
-      clientVersion: '0.2'
+      clientVersion: '0.3'
      });
     this.clients[client.clientId] = client;
   }
@@ -125,10 +125,12 @@ class Room extends EventEmitter {
       var frames = this.buildFramesFor(clientId);
 
       if(frames != null) {
-        var deflatedFrames = frames == [] ? frames : pako.deflate(JSON.stringify(frames), { to: 'string' });
+        if (this.config.allowCompression && frames) {
+          frames = pako.deflate(JSON.stringify(frames), { to: 'string' });
+        }
         client.sendMessage({
           messageType: 'frames',
-          frames: deflatedFrames
+          frames: frames
         });
       }
     }

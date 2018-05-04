@@ -27,7 +27,8 @@ const config = function(root) {
 
     rooms: {
       activityTimeout: 60000,
-      serverFps: 20
+      serverFps: 20,
+      allowCompression: false
     }
   };
 };
