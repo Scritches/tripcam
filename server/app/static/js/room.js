@@ -78,6 +78,7 @@ window.addEventListener('load', function() {
       if(delta > delayPerFrame) {
         var frameData = camera.getFrame('image/jpeg', cameraQuality);
         roomServer.sendFrame(frameData);
+        lastProc = Date.now();
       }
     }
   }
