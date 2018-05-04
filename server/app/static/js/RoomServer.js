@@ -58,7 +58,7 @@ RoomServer.prototype.changeName = function(newName) {
   if (this.connected)
     this.send({
       messageType: 'changeName',
-      username: username
+      username: newName
     });
 }
 
