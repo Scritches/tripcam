@@ -48,15 +48,15 @@ class TripcamServer {
       res.render('index');
     });
 
-    // // Configure room routes
-    // // Ensure room route is secure
-    // app.get('/room/*', (req, res, next) => {
-    //   if (req.secure) { next(); }
-    //   else {
-    //     console.log("redirecting");
-    //     res.redirect('https://' + req.headers.host + ":" + config.https.listenPort + req.url);
-    //   }
-    // });
+    // Configure room routes
+    // Ensure room route is secure
+    app.get('/room/*', (req, res, next) => {
+      if (req.secure) { next(); }
+      else {
+        console.log("redirecting");
+        res.redirect('https://' + req.headers.host + ":" + config.https.listenPort + req.url);
+      }
+    });
 
     //
     app.get('/room/:roomid', ((req, res) => {
