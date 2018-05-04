@@ -60,10 +60,15 @@ class TripcamServer {
 
     //
     app.get('/room/:roomid', ((req, res) => {
-      let roomid = req.params.roomid;
+      if(req.protocol != 'https') {
+        //res.redirect('https://' + req.get('host') + req.originalUrl);
+        res.redirect(config.wss.allowedOrigins[0] + req.originalUrl);
+      } else {
+        let roomid = req.params.roomid;
 
-      this.rooms.createRoom(roomid);
-      res.render('room', { roomid: roomid, serverAddress: this.config.wss.serverAddress });
+        this.rooms.createRoom(roomid);
+        res.render('room', { roomid: roomid, serverAddress: this.config.wss.serverAddress });
+      }
     }).bind(this));
 
     // Configure Static files route
