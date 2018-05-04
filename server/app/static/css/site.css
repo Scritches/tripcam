@@ -74,8 +74,11 @@ body {
   border: 1px solid #222e3a;
 }
 
-.username.localDisplay:hover {
+.username.localDisplay {
   text-decoration: underline;
+}
+
+.username.localDisplay:hover {
   cursor: pointer;
   font-weight: bold;
 }
