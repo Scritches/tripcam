@@ -54,7 +54,7 @@ class TripcamServer {
       if (req.secure) { next(); }
       else {
         console.log("redirecting");
-        res.redirect('https://' + req.headers.host + ":" + config.https.listenPort + req.url);
+        res.redirect('https://' + req.headers.host + req.url);
       }
     });
 
