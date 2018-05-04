@@ -30,7 +30,7 @@ RoomServer.prototype.connect = function(username) {
 
     if (msg.messageType == 'hello') {
       this.connected = true;
-      this.emit('connected');
+      this.emit('connected', msg.clientVersion);
 
       this.keepAlive = setInterval(function() {
         this.send({

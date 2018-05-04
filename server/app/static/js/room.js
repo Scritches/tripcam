@@ -1,9 +1,10 @@
-var camSize = { width: 240, height: 180 };
-var desiredFps = 15;
+var camSize = { width: 320, height: 240 };
+var desiredFps = 30;
 var delayPerFrame = 1000 / desiredFps;
 var cameraQuality = 0.50;
 var debug = false;
 var offlineImage = document.getElementById('offline');
+var currentVersion;
 
 window.addEventListener('load', function() {
   var bodyElement = document.getElementsByTagName('body')[0];
@@ -32,7 +33,14 @@ window.addEventListener('load', function() {
     }
   });
 
-  roomServer.on('connected', function() {
+  roomServer.on('connected', function(ver) {
+    if(!currentVersion) currentVersion = ver;
+
+    if(ver != currentVersion) {
+      // Reload the whole damn page.
+      window.location.reload(true);
+    }
+
     bodyElement.style.backgroundColor = '#232f3b';
   });
   roomServer.on('disconnected', function() {
@@ -62,7 +70,7 @@ window.addEventListener('load', function() {
   var lastProc = Date.now();
   function animationFrame() {
     camera.captureCamera();
-    localDisplay.updateFrame(camera.getFrame('image/jpeg', 1));
+    localDisplay.updateFrame(camera.getFrame('image/jpeg', .85));
 
     if(camera.cameraOn && roomServer.connected) {
       var delta = Date.now() - lastProc;

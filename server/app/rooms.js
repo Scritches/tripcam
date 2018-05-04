@@ -105,7 +105,10 @@ class Room extends EventEmitter {
   }
 
   handleConnect(username, client) {
-    client.sendMessage({ messageType: 'hello' });
+    client.sendMessage({
+      messageType: 'hello',
+      clientVersion: '0.1'
+     });
     this.clients[client.clientId] = client;
   }
 
