@@ -48,27 +48,18 @@ class TripcamServer {
       res.render('index');
     });
 
-    // // Configure room routes
-    // // Ensure room route is secure
-    // app.get('/room/*', (req, res, next) => {
-    //   if (req.secure) { next(); }
-    //   else {
-    //     console.log("redirecting");
-    //     res.redirect('https://' + req.headers.host + ":" + config.https.listenPort + req.url);
-    //   }
-    // });
-
-    //
     app.get('/room/:roomid', ((req, res) => {
-      if(req.protocol != 'https') {
-        //res.redirect('https://' + req.get('host') + req.originalUrl);
-        res.redirect(config.wss.allowedOrigins[0] + req.originalUrl);
-      } else {
+      // if(req.protocol != 'https') {
+      //   console.log(req.protocol);
+      //   console.log('redirecting to -> ' + config.wss.allowedOrigins[0] + req.originalUrl);
+      //   //res.redirect('https://' + req.get('host') + req.originalUrl);
+      //   res.redirect(config.wss.allowedOrigins[0] + req.originalUrl);
+      // } else {
         let roomid = req.params.roomid;
 
         this.rooms.createRoom(roomid);
         res.render('room', { roomid: roomid, serverAddress: this.config.wss.serverAddress });
-      }
+      // }
     }).bind(this));
 
     // Configure Static files route
