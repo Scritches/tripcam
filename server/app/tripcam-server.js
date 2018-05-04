@@ -94,6 +94,8 @@ class TripcamServer {
 
       var cn = req.accept('room-protocol', req.origin);
       var roomid = req.resource.slice(6);
+      this.rooms.createRoom(roomid);
+
       var clientid = "client" + Math.random().toString(36).substr(2, 9);
 
       this.rooms.newClient(roomid, clientid, cn);
