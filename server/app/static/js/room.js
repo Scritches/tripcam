@@ -16,14 +16,39 @@ window.addEventListener('load', function() {
   var camera = new Camera();
   var roomServer = new RoomServer(serverAddress + '/room/' + roomid);
 
-  localDisplay.on('username-clicked', function() {
-    var newName = window.prompt('Enter a new username:', username)
-    if (newName && newName != username) {
-      username = newName;
-      window.localStorage.setItem('username', username);
-      roomServer.changeName(username);
-      localDisplay.updateName(username);
+  // var chatFrame = document.createElement('iframe');
+  // chatFrame.setAttribute('style', 'height: 100%; border: 0px none; width: 100%;');
+  // chatFrame.src = 'https://chat.tripsit.me/chat/?theme=cli&nick=' + encodeURIComponent(username) + '&##tripcam-' + roomid;
+  // document.getElementById('contents').appendChild(chatFrame);
+
+
+  var nameSelectModal = document.getElementById('nameSelectModal');
+  var nameSelectTextbox = document.getElementById('newUsername');
+  nameSelectTextbox.onkeypress = function(e) {
+    if (!e) e = window.event;
+    var keyCode = e.keyCode || e.which;
+    if (keyCode == '13') {
+      var newName = nameSelectTextbox.value;
+      if (newName && newName != username) {
+        username = newName;
+        window.localStorage.setItem('username', username);
+        roomServer.changeName(username);
+        localDisplay.updateName(username);
+      }
+      nameSelectModal.style.display = 'none';
+      return false;
     }
+    if (keyCode == '27') {
+      nameSelectModal.style.display = 'none';
+      return false;
+    }
+  }
+
+  localDisplay.on('username-clicked', function() {
+    nameSelectTextbox.value = username;
+    nameSelectModal.style.display = 'block';
+    nameSelectTextbox.focus();
+    nameSelectTextbox.select();
   });
   localDisplay.on('toggle-camera-clicked', function() {
     if (!camera.cameraOn) {
