@@ -37,6 +37,15 @@ function ChatHandler(roomServer, chatContainer, userChat, userChatSubmit) {
     }.bind(this);
 }
 
+function urlify(text) {
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, function(url) {
+        return '<a href="' + url + '" target="_blank">' + url + '</a>';
+    })
+    // or alternatively
+    // return text.replace(urlRegex, '<a href="$1">$1</a>')
+}
+
 ChatHandler.prototype.changeName = function(newName) {
     this.username=newName;
 }
@@ -54,7 +63,9 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
 
     var chatEntry = document.createElement('span');
     chatEntry.className = 'chatentry';
-    chatEntry.innerText = chatText;
+    chatEntry.textContent = chatText;
+    chatText = chatEntry.innerHTML;
+    chatEntry.innerHTML = urlify(chatText);
 
     chatLine.appendChild(chatImage);
     chatLine.appendChild(chatName);

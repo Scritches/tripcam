@@ -101,6 +101,18 @@ body {
   color: #888888;
 }
 
+.room .chat .allchat .chatline a {
+  color: #4aa3fc;
+}
+
+.room .chat .allchat .chatline a:hover {
+  color: #80bfff;
+}
+
+.room .chat .allchat .chatline a:visited {
+  color: #317dc9;
+}
+
 .room .chat .allchat .chatline .chatname {
   font-weight: bold;
 }
