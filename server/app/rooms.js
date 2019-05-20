@@ -88,7 +88,7 @@ class Room extends EventEmitter {
   broadcast(msg, fromClientId) {
     var msgString = JSON.stringify(msg);
     for(var clientId in this.clients) {
-      if (fromClientId && fromClientId == clientid) continue;
+      if (fromClientId && fromClientId == clientId) continue;
       var client = this.clients[clientId];
       client.socket.sendUTF(msgString);
     }
@@ -102,6 +102,7 @@ class Room extends EventEmitter {
     client.on('message', this.refreshActivity.bind(this));
     client.on('connect', this.handleConnect.bind(this));
     client.on('disconnect', this.handleDisconnect.bind(this));
+    client.on('chat', this.handleChat.bind(this));
   }
 
   handleConnect(username, client) {
@@ -116,6 +117,15 @@ class Room extends EventEmitter {
     if (this.clients[clientId]) {
       delete this.clients[clientId];
     }
+  }
+
+  handleChat(clientId, username, text) {
+    this.broadcast({
+      messageType: 'chat',
+      clientId: clientId,
+      username: username,
+      text: text
+    }, clientId);
   }
 
 
@@ -224,6 +234,10 @@ class Client extends EventEmitter {
         this.lastFrame = '';
         this.emit('cameraOff', this.clientId);
         return;
+      }
+
+      case 'chat': {
+        this.emit('chat', this.clientId, this.username, msg.text)
       }
     }
   }

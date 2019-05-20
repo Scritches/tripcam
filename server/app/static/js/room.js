@@ -11,10 +11,10 @@ window.addEventListener('load', function() {
   var bodyElement = document.getElementsByTagName('body')[0];
   var username = window.localStorage.getItem('username') || generateName();
 
-  var localDisplay = new VideoDisplay('local', username);
-  var roomLayout = new RoomLayout(document.getElementById('roomFeed'), localDisplay);
-  var camera = new Camera();
-  var roomServer = new RoomServer(serverAddress + '/room/' + roomid);
+  var localDisplay = window.localDisplay = new VideoDisplay('local', username);
+  var roomLayout = window.roomLayout = new RoomLayout(document.getElementById('roomFeed'), localDisplay);
+  var camera = window.camera = new Camera();
+  var roomServer = window.roomServer = new RoomServer(serverAddress + '/room/' + roomid);
 
   // var chatFrame = document.createElement('iframe');
   // chatFrame.setAttribute('style', 'height: 100%; border: 0px none; width: 100%;');

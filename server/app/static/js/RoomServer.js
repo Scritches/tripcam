@@ -47,6 +47,11 @@ RoomServer.prototype.connect = function(username) {
 
       this.emit('new-frames', frames);
     }
+
+    if (msg.messageType == 'chat') {
+      console.log(msg);
+    }
+
   }.bind(this);
 };
 
@@ -76,5 +81,13 @@ RoomServer.prototype.sendFrame = function(frameData) {
     this.send({
       messageType: 'frame',
       frame: frameData
+    });
+}
+
+RoomServer.prototype.sendChat = function(text) {
+  if (this.connected)
+    this.send({
+      messageType: 'chat',
+      text: text
     });
 }
