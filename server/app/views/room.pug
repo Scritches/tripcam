@@ -2,11 +2,21 @@ extends layout
 
 block content
   img#offline(src='/images/offline.png', style='display:none')
-  div#roomFeed
-  div#chat
-    div#contents
+
+  .room
+    .controls
+      span.roomname #{roomid}
+    
+    .channel#channel
+
+    .chat
+      .allchat#allchat
+      .enterchat
+        input#userchat(type='text')
+        input#userchatsubmit(type='submit', text='Submit')
+  
   div#nameSelectModal.modal
-    div.modal-content
+    .modal-content
       p Enter a new username:
         input#newUsername
   
@@ -22,4 +32,5 @@ block content
   script(src='/js/RoomLayout.js')
   script(src='/js/Camera.js')
   script(src='/js/RoomServer.js')
+  script(src='/js/ChatHandler.js')
   script(src='/js/room.js')

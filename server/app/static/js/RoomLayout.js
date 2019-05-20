@@ -56,7 +56,7 @@ function RoomLayout(container, localDisplay) {
   };
 
   this.currentFrameLayout = null;
-  this.currentLayout = null;
+  this.currentFrameset = [];
   this.layoutChanged = function() {
     var newFrameLayout = frameLayouts[numDisplays + 1];
     if (this.currentFrameLayout == null && newFrameLayout == null) {
@@ -65,63 +65,45 @@ function RoomLayout(container, localDisplay) {
 
     if (this.fullScreenDisplay) newFrameLayout = { rows: 1, cols: 1 };
 
-    // Create the new layout and assign video display elements to the cells
-    var newLayout = document.createElement('div');
-    newLayout.className = 'roomLayout';
+    for (let i = 0; i < this.currentFrameset.length; i++) {
+      const frame = this.currentFrameset[i];
+      frame.detach();
+    }
+    this.currentFrameset = [];
 
-    var remoteDisplayIndex = 0;
-    var remoteDisplayClientIds = _.pluck(this.remoteDisplays, 'clientId');
+    // Create cells for each video frame to render
+    // Handle full-screen case
+    if(this.fullScreenDisplay) {
+      this.fullScreenDisplay.attach(this.container);
+      this.currentFrameset.push(this.fullScreenDisplay);
+    } else {
+      // Add the local video display
+      this.localDisplay.attach(this.container);
+      this.currentFrameset.push(this.localDisplay);
 
-    for (var rowNum = 0; rowNum < newFrameLayout.rows; rowNum++) {
-      // Create row element
-      var row = document.createElement('div');
-      newLayout.appendChild(row);
-      row.className = 'feedRow';
-
-      for (var colNum = 0; colNum < newFrameLayout.cols; colNum++) {
-        // Create column element
-        var col = document.createElement('div');
-        row.appendChild(col);
-        col.className = 'feedCol';
-
-        // Populate cell
-        if (rowNum == 0 && colNum == 0) {
-          // This is where the local display (or the full screen display) needs to be homed.
-          if (this.fullScreenDisplay) {
-            this.fullScreenDisplay.attach(col);
-          } else {
-            this.localDisplay.attach(col);
-          }
-        } else {
-          // This cell belongs to a remote display.
-          if (remoteDisplayIndex < numDisplays) {
-            this.remoteDisplays[remoteDisplayClientIds[remoteDisplayIndex]].attach(col);
-            remoteDisplayIndex++;
-          } else {
-            new VideoDisplay('','').attach(col);
-          }
-        }
+      // Add all the remote video displays
+      var remoteDisplayClientIds = _.pluck(this.remoteDisplays, 'clientId');
+      for (let remoteDisplayIndex = 0; remoteDisplayIndex < remoteDisplayClientIds.length; remoteDisplayIndex++) {
+        const remoteId = remoteDisplayClientIds[remoteDisplayIndex];
+        this.remoteDisplays[remoteId].attach(this.container);
+        this.currentFrameset.push(this.remoteDisplays[remoteId]);
       }
     }
 
-    if (this.currentLayout) this.container.removeChild(this.currentLayout);
-    this.container.appendChild(newLayout);
-    this.currentLayout = newLayout;
+    // Update the container's grid
+    this.container.setAttribute('style', `grid-template: repeat(${newFrameLayout.rows}, 1fr) / repeat(${newFrameLayout.cols}, 1fr)`)
+
     this.currentFrameLayout = newFrameLayout;
     this.resized();
   };
 
   this.resized = function() {
-    var containerSize = { width: this.container.clientWidth - 10, height: this.container.clientHeight - 10 };
+    var containerSize = { width: this.container.clientWidth, height: this.container.clientHeight };
 
     var cellSize = {
-      width: Math.floor(containerSize.width / this.currentFrameLayout.cols) - 20, // -20 for border components
-      height: Math.floor(containerSize.height / this.currentFrameLayout.rows) - 20 //-20 for username label height
+      width: Math.floor(containerSize.width / this.currentFrameLayout.cols),
+      height: Math.floor(containerSize.height / this.currentFrameLayout.rows)
     };
-
-    if(!this.fullScreenDisplay) {
-      if(cellSize.width > camSize.width * 2) cellSize.width = camSize.width * 2;
-    }
 
     if(cellSize.width / cellSize.height > camSize.width / camSize.height) {
       cellSize.width = cellSize.height * (camSize.width / camSize.height);
@@ -131,12 +113,11 @@ function RoomLayout(container, localDisplay) {
       cellSize.height = cellSize.width * (camSize.height / camSize.width);
     }
 
-    var imgs = this.container.getElementsByClassName('video');
+    var imgs = this.container.getElementsByClassName('frameimage');
     for (var i = 0; i < imgs.length; i++) {
-      imgs[i].width = cellSize.width;
-      imgs[i].height = cellSize.height;
-      imgs[i].parentElement.setAttribute('style', 'width: ' + cellSize.width + 'px; height: ' + cellSize.height + ';');
+      imgs[i].setAttribute('style', `width: ${cellSize.width}px; height:${cellSize.height}px;`);
     }
+
   };
 }
 

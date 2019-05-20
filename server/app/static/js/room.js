@@ -12,15 +12,16 @@ window.addEventListener('load', function() {
   var username = window.localStorage.getItem('username') || generateName();
 
   var localDisplay = window.localDisplay = new VideoDisplay('local', username);
-  var roomLayout = window.roomLayout = new RoomLayout(document.getElementById('roomFeed'), localDisplay);
+  var roomLayout = window.roomLayout = new RoomLayout(document.getElementById('channel'), localDisplay);
   var camera = window.camera = new Camera();
   var roomServer = window.roomServer = new RoomServer(serverAddress + '/room/' + roomid);
-
-  // var chatFrame = document.createElement('iframe');
-  // chatFrame.setAttribute('style', 'height: 100%; border: 0px none; width: 100%;');
-  // chatFrame.src = 'https://chat.tripsit.me/chat/?theme=cli&nick=' + encodeURIComponent(username) + '&##tripcam-' + roomid;
-  // document.getElementById('contents').appendChild(chatFrame);
-
+  
+  //chatContainer, userChat, userChatSubmit
+  var chatHandler = window.chatHandler = new ChatHandler(roomServer
+    , document.getElementById('allchat')
+    , document.getElementById('userchat')
+    , document.getElementById('userchatsubmit'));
+  chatHandler.changeName(username);
 
   var nameSelectModal = document.getElementById('nameSelectModal');
   var nameSelectTextbox = document.getElementById('newUsername');
@@ -32,6 +33,7 @@ window.addEventListener('load', function() {
       if (newName && newName != username) {
         username = newName;
         window.localStorage.setItem('username', username);
+        chatHandler.changeName(username);
         roomServer.changeName(username);
         localDisplay.updateName(username);
       }

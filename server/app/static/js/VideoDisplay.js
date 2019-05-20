@@ -5,33 +5,29 @@ function VideoDisplay(clientId, username) {
 
   this.container = null;
 
-  this.el = document.createElement('div');
-  this.el.className = 'videoFrame';
-  this.el.id = clientId;
+  this.frame_el = document.createElement('div');
+  this.frame_el.className = clientId == 'local' ? "frame selfframe" : "frame";
+  this.frame_el.id = clientId;
 
-  this.el.appendChild(this.el_frame = document.createElement('div'));
-  this.el_frame.className = 'frame';
+  this.frame_el.appendChild(this.videoview_el = document.createElement('div'));
+  this.videoview_el.className = 'videoview';
+  this.videoview_el.appendChild(this.image_el = new Image());
+  this.image_el.className = 'frameimage';
+  this.image_el.width = camSize.width;
+  this.image_el.height = camSize.height;
 
-  this.el_frame.appendChild(this.el_image = new Image());
-  this.el_image.className = 'video';
-  this.el_image.width = camSize.width;
-  this.el_image.height = camSize.height;
-
-  this.el_frame.appendChild(this.el_username = document.createElement('div'));
-  this.el_username.className = 'username';
-  this.el_username.innerText = this.username;
-
-  if (clientId == 'local') {
-    this.el_username.className = 'username localDisplay';
-    this.el_username.setAttribute('title', 'Click to edit your name.');
-
-    this.el_frame.appendChild(this.el_camButton = new Image());
-    this.el_camButton.width = 32;
-    this.el_camButton.height = 32;
-    this.el_camButton.src = '/images/video-camera-icon.png';
-    this.el_camButton.className = 'camButton';
-    this.el_camButton.setAttribute('title', 'Click to toggle your camera.');
+  if(clientId == 'local') {
+    this.frame_el.appendChild(this.cambutton_el = document.createElement('div'));
+    this.cambutton_el.className='camerabutton';
+    this.cambutton_el.setAttribute('title', 'Click to toggle your camera.');
   }
+
+  this.frame_el.appendChild(this.username_el = document.createElement('div'));
+  this.username_el.className = 'username';
+  if (clientId == 'local') {
+    this.username_el.setAttribute('title', 'Click to change your name.');
+  }
+  this.username_el.innerText = this.username;
 
   this.usernameClickHandler = function() {
     this.emit('username-clicked', this);
@@ -50,12 +46,12 @@ VideoDisplay.prototype = _.clone(EventEmitter.prototype);
 
 VideoDisplay.prototype.detach = function() {
   if(this.container) {
-    this.el_image.removeEventListener('dblclick', this.imageDblClickHandler);
+    this.image_el.removeEventListener('dblclick', this.imageDblClickHandler);
     if(this.clientId == 'local') {
-      this.el_username.removeEventListener('click', this.usernameClickHandler);
-      this.el_camButton.removeEventListener('click', this.toggleCameraClickHandler);
+      this.username_el.removeEventListener('click', this.usernameClickHandler);
+      this.cambutton_el.removeEventListener('click', this.toggleCameraClickHandler);
     }
-    this.container.removeChild(this.el);
+    this.container.removeChild(this.frame_el);
     this.container = null;
   }
 }
@@ -65,20 +61,20 @@ VideoDisplay.prototype.attach = function(container) {
     this.detach();
   }
 
-  container.appendChild(this.el);
+  container.appendChild(this.frame_el);
   this.container = container;
 
-  this.el_image.addEventListener('dblclick', this.imageDblClickHandler);
+  this.image_el.addEventListener('dblclick', this.imageDblClickHandler);
   if(this.clientId == 'local') {
-    this.el_username.addEventListener('click', this.usernameClickHandler);
-    this.el_camButton.addEventListener('click', this.toggleCameraClickHandler);
+    this.username_el.addEventListener('click', this.usernameClickHandler);
+    this.cambutton_el.addEventListener('click', this.toggleCameraClickHandler);
   }
 }
 
 VideoDisplay.prototype.updateName = function(username) {
   if(username && this.username !== username) {
     this.username = username
-    this.el_username.innerText = this.username;
+    this.username_el.innerText = this.username;
   }
 }
 
@@ -86,9 +82,9 @@ VideoDisplay.prototype.updateFrame = function(frame) {
   if(this.container) {
     // No point updating the current frame if the display isn't attached to the document
     if(frame === '') {
-      if(this.el_image.src != offlineImage.src) this.el_image.src = offlineImage.src;
+      if(this.image_el.src != offlineImage.src) this.image_el.src = offlineImage.src;
     } else {
-      this.el_image.src = frame;
+      this.image_el.src = frame;
     }
   }
 }

@@ -1,88 +1,146 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
+  font-family: Arial, Helvetica, sans-serif;
   background-color: #232f3b;
   color: #c6c0d1;
+
 }
 
-#roomFeed {
+.room {
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-rows: 2.6rem 1fr 200px;
+}
+
+.room .controls .roomname {
+  font-size: 2.4rem;
+  color: #888888;
+}
+
+.room .channel {
+  background-color: black;
+  display: grid;
+  grid-template: 1fr / 1fr;
+}
+
+.room .channel .frame {
+  border: 1px solid #444;
+  position:relative;
+  overflow: hidden;
+}
+
+.room .channel .frame .username:hover {
+  cursor: default;
+}
+
+.room .channel .selfframe .username:hover {
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.room .channel .frame .camerabutton {
   position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 8px;
-  right: 258px;
-  background-color: #121e2a;
+  top: 5px;
+  right: 3px;
+  width: 32px;
+  height: 32px;
+  background-image: url('../images/video-camera-icon.png');
 }
 
-#chat {
-  float: right;
-  display:block;
-  width: 250px;
-  height: 100%;
-}
-
-#contents {
-  position:relative;
-  margin-left: 15px;
-}
-
-.roomLayout {
-  display: flex;
-  flex-flow: column;
-  height: 100%;
-  width: 100%;
-}
-
-.feedRow {
-  display: flex;
-  flex-flow: row;
-  flex-grow: 1;
-  align-items: center;
-}
-
-.feedCol {
-  flex-grow: 1;
-}
-
-.frame {
-  position:relative;
-  margin: auto;
-}
-
-.frame .camButton {
-  position:absolute;
+.room .channel .frame .videoview {
+  position: absolute;
   top: 0px;
   left: 0px;
+  width: 100%;
+  height: 100%;
+  background-color:black;
 }
 
-.camButton:hover {
-  cursor: pointer;
-}
-
-.frame .video {
+.room .channel .frame .videoview img {
   display:block;
-  margin-left: auto;
-  margin-right: auto;
-  border: 1px solid #222e3a;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%)
 }
 
-.username {
+.room .channel .frame .username {
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  color: black;
   text-align: center;
-  text-overflow: clip;
-  overflow: hidden;
-  height: 20px;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: #222e3a;
-  border: 1px solid #222e3a;
+  font-size: 1.5rem;
+  opacity: .75;
+  text-shadow: 1px 1px 10px white, -1px -1px 10px white;
 }
 
-.username.localDisplay {
-  text-decoration: underline;
+.room .chat {
+  background-color:#19222b;
+  display: grid;
+  height: 100%;
+  grid-template-rows: 1fr 2rem;
 }
 
-.username.localDisplay:hover {
-  cursor: pointer;
+.room .chat .allchat {
+  overflow-x: wrap;
+  overflow-y: scroll;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #888888;
+}
+
+.room .chat .allchat .chatline .chatname {
   font-weight: bold;
 }
+
+.room .chat .allchat .chatline .chatname:before {
+  content: ' ';
+}
+
+.room .chat .allchat .chatline .chatname:after {
+  content: ' | ';
+}
+
+.room .chat .allchat .chatline:nth-child(even) {
+  background: #0e1318;
+}
+
+.room .chat .allchat .chatline img {
+  width: 48px;
+  height: 36px;
+}
+
+
+
+
+
+.room .chat .enterchat {
+  display: grid;
+  grid-template-columns: 90% 1fr;
+}
+
+.room .chat .enterchat input[type='text'] {
+  font-size: 1.25rem;
+}
+
+.room .chat .enterchat input[type='submit'] {
+  font-size: 1.25rem;
+}
+
+
+
 
 .modal {
     display: none;

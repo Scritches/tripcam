@@ -49,7 +49,7 @@ RoomServer.prototype.connect = function(username) {
     }
 
     if (msg.messageType == 'chat') {
-      console.log(msg);
+      this.emit('chat-received', msg);
     }
 
   }.bind(this);
