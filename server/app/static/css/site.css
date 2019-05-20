@@ -79,11 +79,11 @@ body {
   left: 0px;
   right: 0px;
   bottom: 0px;
-  color: black;
+  color: white;
   text-align: center;
   font-size: 1.5rem;
   opacity: .75;
-  text-shadow: 1px 1px 10px white, -1px -1px 10px white;
+  text-shadow: 1px 1px 10px black, -1px -1px 10px black;
 }
 
 .room .chat {
