@@ -10,6 +10,7 @@ var currentVersion;
 window.addEventListener('load', function() {
   var bodyElement = document.getElementsByTagName('body')[0];
   var username = window.localStorage.getItem('username') || generateName();
+  if(username.length > 25) username = username.substr(0, 25);
 
   var localDisplay = window.localDisplay = new VideoDisplay('local', username);
   var roomLayout = window.roomLayout = new RoomLayout(document.getElementById('channel'), localDisplay);
