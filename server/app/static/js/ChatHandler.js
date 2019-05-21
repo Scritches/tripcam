@@ -19,7 +19,7 @@ function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSu
         var remoteDisplay = this.roomLayout.remoteDisplays[msg.clientId];
         var frameUrl = "#";
         if (remoteDisplay) frameUrl = remoteDisplay.lastFrame;
-        this.displayChat(msg.username, "#", msg.text);
+        this.displayChat(msg.username, frameUrl, msg.text);
     }.bind(this));
 
     this.userChatSubmit.onclick = function() {
