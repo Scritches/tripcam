@@ -1,27 +1,32 @@
-function ChatHandler(roomServer, chatContainer, userChat, userChatSubmit) {
+function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSubmit) {
     this.username = "";
     this.roomServer = roomServer;
     this.chatContainer = chatContainer;
     this.userChat = userChat;
     this.userChatSubmit = userChatSubmit;
+    this.roomLayout = roomLayout;
 
     this.roomServer.on('connected', function() {
-        this.displayChat("TripCam", "#", "You are connected to the server.");
+        this.displayChat("TripCam", "../images/video-camera-icon.png", "You are connected to the server.");
         this.roomServer.sendChat("> has entered the channel <")
     }.bind(this));
 
     this.roomServer.on('disconnected', function() {
-        this.displayChat("TripCam", "#", "You have been disconnected from the server.");
+        this.displayChat("TripCam", "../images/video-camera-icon.png", "You have been disconnected from the server.");
     }.bind(this));
 
     this.roomServer.on('chat-received', function(msg) {
+        var remoteDisplay = this.roomLayout.remoteDisplays[clientId];
+        var frameUrl = "#";
+        if (remoteDisplay) frameUrl = remoteDisplay.lastFrame;
         this.displayChat(msg.username, "#", msg.text);
     }.bind(this));
 
     this.userChatSubmit.onclick = function() {
         var chatText = this.userChat.value;
         this.roomServer.sendChat(chatText);
-        this.displayChat(this.username, "#", chatText);
+        var frameUrl = this.roomLayout.localDisplay.lastFrame;
+        this.displayChat(this.username, frameUrl, chatText);
         this.userChat.value = "";
     }.bind(this);
             
@@ -31,7 +36,8 @@ function ChatHandler(roomServer, chatContainer, userChat, userChatSubmit) {
         if (keyCode == '13') {
             var chatText = this.userChat.value;
             this.roomServer.sendChat(chatText);
-            this.displayChat(this.username, "#", chatText);
+            var frameUrl = this.roomLayout.localDisplay.lastFrame;
+            this.displayChat(this.username, frameUrl, chatText);
             this.userChat.value = "";
         }
     }.bind(this);
@@ -42,8 +48,6 @@ function urlify(text) {
     return text.replace(urlRegex, function(url) {
         return '<a href="' + url + '" target="_blank">' + url + '</a>';
     })
-    // or alternatively
-    // return text.replace(urlRegex, '<a href="$1">$1</a>')
 }
 
 ChatHandler.prototype.changeName = function(newName) {

@@ -18,10 +18,10 @@ window.addEventListener('load', function() {
   var roomServer = window.roomServer = new RoomServer(serverAddress + '/room/' + roomid);
   
   //chatContainer, userChat, userChatSubmit
-  var chatHandler = window.chatHandler = new ChatHandler(roomServer
-    , document.getElementById('allchat')
-    , document.getElementById('userchat')
-    , document.getElementById('userchatsubmit'));
+  var chatHandler = window.chatHandler = new ChatHandler(roomServer, roomLayout,
+    document.getElementById('allchat'),
+    document.getElementById('userchat'),
+    document.getElementById('userchatsubmit'));
   chatHandler.changeName(username);
 
   var nameSelectModal = document.getElementById('nameSelectModal');

@@ -1,5 +1,6 @@
 function VideoDisplay(clientId, username) {
   if(debug) console.log('new video display: ', clientId);
+  this.lastFrame = '#';
   this.clientId = clientId;
   this.username = username;
 
@@ -83,8 +84,10 @@ VideoDisplay.prototype.updateFrame = function(frame) {
     // No point updating the current frame if the display isn't attached to the document
     if(frame === '') {
       if(this.image_el.src != offlineImage.src) this.image_el.src = offlineImage.src;
+      this.lastFrame = offlineImage.src;
     } else {
       this.image_el.src = frame;
+      this.lastFrame = frame;
     }
   }
 }
