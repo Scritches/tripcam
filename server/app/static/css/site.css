@@ -122,7 +122,7 @@ body {
 }
 
 .room .chat .allchat .chatline .chatname:after {
-  content: ' | ';
+  content: ' -- ';
 }
 
 .room .chat .allchat .chatline:nth-child(even) {

@@ -17,7 +17,7 @@ function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSu
 
     this.roomServer.on('chat-received', function(msg) {
         var remoteDisplay = this.roomLayout.remoteDisplays[msg.clientId];
-        var frameUrl = "#";
+        var frameUrl = "../images/video-camera-icon.png";
         if (remoteDisplay) frameUrl = remoteDisplay.lastFrame;
         this.displayChat(msg.username, frameUrl, msg.text);
     }.bind(this));
