@@ -46,7 +46,7 @@ function VideoDisplay(clientId, username) {
 
   this.toggleCameraClickHandler = function() {
     if (!this.isLocal) {
-      this.remoteVisible != this.remoteVisible;
+      this.remoteVisible = !this.remoteVisible;
       this.updateFrame('');
     } else {
       this.emit('toggle-camera-clicked', this);
