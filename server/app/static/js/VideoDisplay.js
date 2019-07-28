@@ -1,4 +1,7 @@
 function VideoDisplay(clientId, username) {
+  this.isLocal = clientId == 'local';
+  this.remoteVisible = true;
+
   if(debug) console.log('new video display: ', clientId);
   this.lastFrame = '#';
   this.clientId = clientId;
@@ -17,10 +20,13 @@ function VideoDisplay(clientId, username) {
   this.image_el.width = camSize.width;
   this.image_el.height = camSize.height;
 
-  if(clientId == 'local') {
+  //if(clientId == 'local') {
     this.frame_el.appendChild(this.cambutton_el = document.createElement('div'));
     this.cambutton_el.className='camerabutton';
+  if(this.isLocal) {
     this.cambutton_el.setAttribute('title', 'Click to toggle your camera.');
+  } else {
+    this.cambutton_el.setAttribute('title', 'Click to toggle this camera.');
   }
 
   this.frame_el.appendChild(this.username_el = document.createElement('div'));
@@ -39,7 +45,12 @@ function VideoDisplay(clientId, username) {
   }.bind(this);
 
   this.toggleCameraClickHandler = function() {
-    this.emit('toggle-camera-clicked', this);
+    if (this.isLocal) {
+      this.remoteVisible != this.remoteVisible;
+      this.updateFrame('');
+    } else {
+      this.emit('toggle-camera-clicked', this);
+    }
   }.bind(this);
 }
 
@@ -48,10 +59,10 @@ VideoDisplay.prototype = _.clone(EventEmitter.prototype);
 VideoDisplay.prototype.detach = function() {
   if(this.container) {
     this.image_el.removeEventListener('dblclick', this.imageDblClickHandler);
-    if(this.clientId == 'local') {
+    if(this.isLocal) {
       this.username_el.removeEventListener('click', this.usernameClickHandler);
-      this.cambutton_el.removeEventListener('click', this.toggleCameraClickHandler);
     }
+    this.cambutton_el.removeEventListener('click', this.toggleCameraClickHandler);
     this.container.removeChild(this.frame_el);
     this.container = null;
   }
@@ -66,10 +77,10 @@ VideoDisplay.prototype.attach = function(container) {
   this.container = container;
 
   this.image_el.addEventListener('dblclick', this.imageDblClickHandler);
-  if(this.clientId == 'local') {
+  if(this.isLocal) {
     this.username_el.addEventListener('click', this.usernameClickHandler);
-    this.cambutton_el.addEventListener('click', this.toggleCameraClickHandler);
   }
+  this.cambutton_el.addEventListener('click', this.toggleCameraClickHandler);
 }
 
 VideoDisplay.prototype.updateName = function(username) {
@@ -82,7 +93,7 @@ VideoDisplay.prototype.updateName = function(username) {
 VideoDisplay.prototype.updateFrame = function(frame) {
   if(this.container) {
     // No point updating the current frame if the display isn't attached to the document
-    if(frame === '') {
+    if(frame === '' || !this.remoteVisible) {
       if(this.image_el.src != offlineImage.src) this.image_el.src = offlineImage.src;
       this.lastFrame = offlineImage.src;
     } else {
