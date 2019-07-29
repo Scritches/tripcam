@@ -71,11 +71,18 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
     var chatEntry = document.createElement('span');
     chatEntry.className = 'chatentry';
     chatEntry.textContent = chatText;
-    chatText = chatEntry.innerHTML;
-    chatEntry.innerHTML = urlify(chatText);
+    chatText = urlify(chatEntry.innerHTML);
+    
+    var isAction = false;
+    if(chatText.startsWith("/me ")) {
+        isAction = true;
+        chatText = " <i><b>" + fromName + "</b> " + chatText.substring(4) + "</i>";
+    }
+    
+    chatEntry.innerHTML = chatText;
 
     chatLine.appendChild(chatImage);
-    chatLine.appendChild(chatName);
+    if(!isAction) chatLine.appendChild(chatName);
     chatLine.appendChild(chatEntry);
 
     this.chatContainer.appendChild(chatLine);
