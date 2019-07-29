@@ -6,13 +6,16 @@ function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSu
     this.userChatSubmit = userChatSubmit;
     this.roomLayout = roomLayout;
 
+    var wasConnected = false;
     this.roomServer.on('connected', function() {
         this.displayChat("TripCam", "../images/video-camera-icon.png", "You are connected to the server.");
         this.roomServer.sendChat("> has entered the channel <")
+        wasConnected = true;
     }.bind(this));
 
     this.roomServer.on('disconnected', function() {
-        this.displayChat("TripCam", "../images/video-camera-icon.png", "You have been disconnected from the server.");
+        if(wasConnected) this.displayChat("TripCam", "../images/video-camera-icon.png", "You have been disconnected from the server.");
+        wasConnected = false;
     }.bind(this));
 
     this.roomServer.on('chat-received', function(msg) {
