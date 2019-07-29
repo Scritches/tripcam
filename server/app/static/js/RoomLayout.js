@@ -113,11 +113,8 @@ function RoomLayout(container, localDisplay) {
       cellSize.height = cellSize.width * (camSize.height / camSize.width);
     }
 
-    var imgs = this.container.getElementsByClassName('frameimage');
-    for (var i = 0; i < imgs.length; i++) {
-      imgs[i].setAttribute('style', `width: ${cellSize.width}px; height:${cellSize.height}px;`);
-    }
-
+    this.localDisplay.resize(cellSize.width, cellSize.height);
+    Object.values(this.remoteDisplays).forEach(function(d) { d.resize(cellSize.width, cellSize.height); });
   };
 }
 
@@ -127,10 +124,11 @@ var frameLayouts = function() {
   for (var cams = 1; cams <= 16; cams++) {
     switch (cams) {
       case 1: case 2:                     r[cams] = { rows: 1, cols: 2 }; break;
-      case 3: case 4:                     r[cams] = { rows: 2, cols: 2 }; break;
-      case 5: case 6:                     r[cams] = { rows: 2, cols: 3 }; break;
-      case 7: case 8: case 9:             r[cams] = { rows: 3, cols: 3 }; break;
-      case 10: case 11: case 12:          r[cams] = { rows: 3, cols: 4 }; break;
+      case 3:                             r[cams] = { rows: 1, cols: 3 }; break;
+      case 4:                             r[cams] = { rows: 1, cols: 4 }; break;
+      case 5: case 6:                     r[cams] = { rows: 2, cols: 4 }; break;
+      case 7: case 8:                     r[cams] = { rows: 2, cols: 4 }; break;
+      case 9: case 10: case 11: case 12:  r[cams] = { rows: 3, cols: 4 }; break;
       case 13: case 14: case 15: case 16: r[cams] = { rows: 4, cols: 4 }; break;
     }
   }

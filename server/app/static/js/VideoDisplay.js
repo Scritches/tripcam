@@ -10,7 +10,7 @@ function VideoDisplay(clientId, username) {
   this.container = null;
 
   this.frame_el = document.createElement('div');
-  this.frame_el.className = clientId == 'local' ? "frame selfframe" : "frame";
+  this.frame_el.className = this.isLocal ? "frame selfframe" : "frame";
   this.frame_el.id = clientId;
 
   this.frame_el.appendChild(this.videoview_el = document.createElement('div'));
@@ -20,18 +20,13 @@ function VideoDisplay(clientId, username) {
   this.image_el.width = camSize.width;
   this.image_el.height = camSize.height;
 
-  //if(clientId == 'local') {
-    this.frame_el.appendChild(this.cambutton_el = document.createElement('div'));
-    this.cambutton_el.className='camerabutton';
-  if(this.isLocal) {
-    this.cambutton_el.setAttribute('title', 'Click to toggle your camera.');
-  } else {
-    this.cambutton_el.setAttribute('title', 'Click to toggle this camera.');
-  }
+  this.frame_el.appendChild(this.cambutton_el = document.createElement('div'));
+  this.cambutton_el.className='camerabutton';
+  this.cambutton_el.setAttribute('title', 'Click to toggle ' + (this.isLocal ? 'your' : 'this') + ' camera.');
 
   this.frame_el.appendChild(this.username_el = document.createElement('div'));
   this.username_el.className = 'username';
-  if (clientId == 'local') {
+  if (this.isLocal) {
     this.username_el.setAttribute('title', 'Click to change your name.');
   }
   this.username_el.innerText = this.username;
@@ -101,4 +96,11 @@ VideoDisplay.prototype.updateFrame = function(frame) {
       this.lastFrame = frame;
     }
   }
+}
+
+VideoDisplay.prototype.resize = function(width, height) {
+  this.image_el.setAttribute('style', `width: ${width}px; height:${height}px`);
+  this.image_el.width = width;
+  this.image_el.height = height;
+  console.log(this.username + ' resize: ', width, height);
 }
