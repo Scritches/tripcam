@@ -102,5 +102,4 @@ VideoDisplay.prototype.resize = function(width, height) {
   this.image_el.setAttribute('style', `width: ${width}px; height:${height}px`);
   this.image_el.width = width;
   this.image_el.height = height;
-  console.log(this.username + ' resize: ', width, height);
 }
