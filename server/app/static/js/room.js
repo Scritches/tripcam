@@ -21,7 +21,8 @@ window.addEventListener('load', function() {
   var chatHandler = window.chatHandler = new ChatHandler(roomServer, roomLayout,
     document.getElementById('allchat'),
     document.getElementById('userchat'),
-    document.getElementById('userchatsubmit'));
+    document.getElementById('userchatsubmit'),
+    document.getElementById('youtube'));
   chatHandler.changeName(username);
 
   var nameSelectModal = document.getElementById('nameSelectModal');

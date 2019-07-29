@@ -1,10 +1,11 @@
-function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSubmit) {
+function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSubmit, youtubeContainer) {
     this.username = "";
     this.roomServer = roomServer;
     this.chatContainer = chatContainer;
     this.userChat = userChat;
     this.userChatSubmit = userChatSubmit;
     this.roomLayout = roomLayout;
+    this.youtubeContainer = youtubeContainer;
 
     var wasConnected = false;
     this.roomServer.on('connected', function() {
@@ -58,6 +59,7 @@ ChatHandler.prototype.changeName = function(newName) {
 }
 
 ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
+    var origText = chatText;
     var chatLine = document.createElement('div');
     chatLine.className = 'chatline';
     
@@ -80,6 +82,7 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
     }
     
     chatEntry.innerHTML = chatText;
+    chatText = origText;
 
     chatLine.appendChild(chatImage);
     if(!isAction) chatLine.appendChild(chatName);
@@ -88,4 +91,20 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
     this.chatContainer.appendChild(chatLine);
 
     this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+
+
+
+    if(chatText.startsWith('!play ')) {
+        var youtubeLink = chatText.substring(6);
+        var linkRegex = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        var linkMatch = youtubeLink.match(linkRegex);
+        if(linkMatch) {
+            var id = linkMatch[2];
+            this.youtubeContainer.innerHTML = "";
+            this.youtubeContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+        }
+    }
+
+
+
 }
