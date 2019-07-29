@@ -1,11 +1,18 @@
-function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSubmit, youtubeContainer) {
+function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSubmit) {
     this.username = "";
     this.roomServer = roomServer;
     this.chatContainer = chatContainer;
     this.userChat = userChat;
     this.userChatSubmit = userChatSubmit;
     this.roomLayout = roomLayout;
-    this.youtubeContainer = youtubeContainer;
+
+    this.ytPlayer = new YT.Player(
+        'youtube',
+        {
+            width: 360,
+            height: 200
+        }
+    );
 
     var wasConnected = false;
     this.roomServer.on('connected', function() {
@@ -92,19 +99,16 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
 
     this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
 
-
-
     if(chatText.startsWith('!play ')) {
         var youtubeLink = chatText.substring(6);
         var linkRegex = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         var linkMatch = youtubeLink.match(linkRegex);
         if(linkMatch) {
             var id = linkMatch[2];
-            this.youtubeContainer.innerHTML = "";
-            this.youtubeContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
+            //this.youtubeContainer.innerHTML = "";
+            //this.youtubeContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
+            this.ytPlayer.loadVideoById(id);
         }
     }
-
-
-
+    
 }

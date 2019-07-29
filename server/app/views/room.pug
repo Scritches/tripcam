@@ -14,13 +14,15 @@ block content
       .enterchat
         input#userchat(type='text')
         input#userchatsubmit(type='submit', text='Submit')
-      .youtube#youtube
+      .youtube
+        div#youtube
   
   div#nameSelectModal.modal
     .modal-content
       p Enter a new username:
         input#newUsername(maxlength=25)
   
+  script(src='https://www.youtube.com/iframe_api')
   script(src='/bower_components/promise-polyfill/dist/polyfill.js')
   script(src='/js/mediaDevices-getUserMedia-polyfill.js')
   script(src='/js/random-name.js')
