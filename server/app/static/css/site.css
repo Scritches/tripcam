@@ -31,8 +31,8 @@ body {
   display: grid;
   display: -ms-grid;
   grid-template: 1fr / 1fr;
-  -ms-grid-row: 1fr;
-  -ms-grid-column: 1fr;
+  -ms-grid-rows: 1fr;
+  -ms-grid-columns: 1fr;
 }
 
 .room .channel .frame {
