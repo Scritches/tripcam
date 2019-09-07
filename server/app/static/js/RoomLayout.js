@@ -124,7 +124,7 @@ function RoomLayout(container, localDisplay) {
     //Object.values(this.remoteDisplays).forEach(function(d) { d.resize(cellSize.width, cellSize.height); });
     var key;
     for (key in this.remoteDisplays) {
-      this.remoteDisplay[key].resize(cellSize.width, cellSize.height);
+      this.remoteDisplays[key].resize(cellSize.width, cellSize.height);
     }
   };
 }
