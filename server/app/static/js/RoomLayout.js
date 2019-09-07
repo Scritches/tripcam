@@ -115,7 +115,11 @@ function RoomLayout(container, localDisplay) {
     }
 
     this.localDisplay.resize(cellSize.width, cellSize.height);
-    Object.values(this.remoteDisplays).forEach(function(d) { d.resize(cellSize.width, cellSize.height); });
+    //Object.values(this.remoteDisplays).forEach(function(d) { d.resize(cellSize.width, cellSize.height); });
+    var key;
+    for (key in this.remoteDisplays) {
+      this.remoteDisplay[key].resize(cellSize.width, cellSize.height);
+    }
   };
 }
 
