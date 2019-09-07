@@ -93,7 +93,7 @@ function RoomLayout(container, localDisplay) {
     // Update the container's grid
     var newStyle;
     if(isIE11) {
-      newStyle = "-ms-grid-rows: (1fr)[" + newFrameLayout.rows.toString() + "];\r\n-ms-grid-colums: (1fr)[" + newFrameLayout.cols.toString() + "];";
+      newStyle = "-ms-grid-rows: (1fr)[" + newFrameLayout.rows.toString() + "];\r\n-ms-grid-columns: (1fr)[" + newFrameLayout.cols.toString() + "];";
     } else {
       newStyle = "grid-template: repeat(" + newFrameLayout.rows.toString() + ", 1fr) / repeat(" + newFrameLayout.cols.toString() + ", 1fr);";
     }

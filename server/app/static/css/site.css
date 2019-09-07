@@ -21,6 +21,10 @@ body {
   -ms-grid-rows: 2.6rem 1fr 200px;
 }
 
+.room .controls {
+  -ms-grid-row: 1;
+}
+
 .room .controls .roomname {
   font-size: 2.4rem;
   color: #888888;
@@ -33,6 +37,7 @@ body {
   grid-template: 1fr / 1fr;
   -ms-grid-rows: 1fr;
   -ms-grid-columns: 1fr;
+  -ms-grid-row: 2;
 }
 
 .room .channel .frame {
@@ -100,6 +105,7 @@ body {
   grid-template-columns: auto 360px;
   -ms-grid-rows: 1fr 2rem;
   -ms-grid-columns: auto 360px;
+  -ms-grid-row: 3;
 }
 
 .room .chat .allchat {
