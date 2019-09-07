@@ -44,6 +44,7 @@ function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSu
 
     this.userChatSubmit.onclick = function() {
         var chatText = this.userChat.value;
+        if(chatText.trim() == "") return;
         this.roomServer.sendChat(chatText);
         var frameUrl = this.roomLayout.localDisplay.lastFrame;
         this.displayChat(this.username, frameUrl, chatText);
@@ -55,6 +56,7 @@ function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSu
         var keyCode = e.keyCode || e.which;
         if (keyCode == '13') {
             var chatText = this.userChat.value;
+            if(chatText.trim() == "") return;
             this.roomServer.sendChat(chatText);
             var frameUrl = this.roomLayout.localDisplay.lastFrame;
             this.displayChat(this.username, frameUrl, chatText);
