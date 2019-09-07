@@ -120,11 +120,11 @@ function RoomLayout(container, localDisplay) {
       cellSize.height = cellSize.width * (camSize.height / camSize.width);
     }
 
-    this.localDisplay.resize(cellSize.width, cellSize.height);
+    this.localDisplay.resize(cellSize.width, cellSize.height, 1, 1);
     //Object.values(this.remoteDisplays).forEach(function(d) { d.resize(cellSize.width, cellSize.height); });
     var key;
     var row = 1;
-    var col = 1;
+    var col = 2;
     for (key in this.remoteDisplays) {
       this.remoteDisplays[key].resize(cellSize.width, cellSize.height, row, col);
       col++;

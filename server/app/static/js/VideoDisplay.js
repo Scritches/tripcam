@@ -101,7 +101,8 @@ VideoDisplay.prototype.updateFrame = function(frame) {
 VideoDisplay.prototype.resize = function(width, height, row, col) {
   var newStyle = "width: " + width.toString() + "px; height:" + height.toString() + "px;";
   if(isIE11) {
-    newStyle += "-ms-grid-row: " + row + " ; -ms-grid-column: " + col + ";";
+    var vdStyle = "-ms-grid-row: " + row + " ; -ms-grid-column: " + col + ";";
+    this.frame_el.setAttribute('style', vdStyle);
   }
   this.image_el.setAttribute('style', newStyle);
   this.image_el.width = width;
