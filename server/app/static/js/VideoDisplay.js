@@ -100,7 +100,7 @@ VideoDisplay.prototype.updateFrame = function(frame) {
 
 VideoDisplay.prototype.resize = function(width, height) {
   var newStyle = "width: " + width.toString() + "px; height:" + height.toString() + "px";
-  this.image_el.setAttribute('style', newstyle);
+  this.image_el.setAttribute('style', newStyle);
   this.image_el.width = width;
   this.image_el.height = height;
 }
