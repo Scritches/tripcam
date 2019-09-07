@@ -94,6 +94,7 @@ body {
 .room .chat {
   background-color:#19222b;
   display: grid;
+  display: -ms-grid;
   height: 100%;
   grid-template-rows: 1fr 2rem;
   grid-template-columns: auto 360px;
