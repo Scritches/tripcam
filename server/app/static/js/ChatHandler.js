@@ -83,6 +83,7 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
     
     var chatImage = new Image();
     chatImage.src = fromImage;
+    chatImage.title = new Date().toLocaleString();
 
     var chatName = document.createElement('span');
     chatName.className = 'chatname';
