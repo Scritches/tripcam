@@ -170,10 +170,12 @@ body {
 
 .room .chat .enterchat input[type='text'] {
   font-size: 1.25rem;
+  -ms-grid-column:1;
 }
 
 .room .chat .enterchat input[type='submit'] {
   font-size: 1.25rem;
+  -ms-grid-column:2;
 }
 
 

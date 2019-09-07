@@ -123,8 +123,15 @@ function RoomLayout(container, localDisplay) {
     this.localDisplay.resize(cellSize.width, cellSize.height);
     //Object.values(this.remoteDisplays).forEach(function(d) { d.resize(cellSize.width, cellSize.height); });
     var key;
+    var row = 1;
+    var col = 1;
     for (key in this.remoteDisplays) {
-      this.remoteDisplays[key].resize(cellSize.width, cellSize.height);
+      this.remoteDisplays[key].resize(cellSize.width, cellSize.height, row, col);
+      col++;
+      if(col > this.currentFrameLayout.cols) {
+        row++;
+        col = 1;
+      }
     }
   };
 }

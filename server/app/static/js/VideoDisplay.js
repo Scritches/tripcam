@@ -98,8 +98,11 @@ VideoDisplay.prototype.updateFrame = function(frame) {
   }
 }
 
-VideoDisplay.prototype.resize = function(width, height) {
-  var newStyle = "width: " + width.toString() + "px; height:" + height.toString() + "px";
+VideoDisplay.prototype.resize = function(width, height, row, col) {
+  var newStyle = "width: " + width.toString() + "px; height:" + height.toString() + "px;";
+  if(isIE11) {
+    newStyle += "-ms-grid-row: " + row + " ; -ms-grid-column: " + col + ";";
+  }
   this.image_el.setAttribute('style', newStyle);
   this.image_el.width = width;
   this.image_el.height = height;
