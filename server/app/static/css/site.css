@@ -19,6 +19,7 @@ body {
   display: -ms-grid;
   grid-template-rows: 2.6rem 1fr 200px;
   -ms-grid-rows: 2.6rem 1fr 200px;
+  -ms-grid-columns: 1fr;
 }
 
 .room .controls {
@@ -104,7 +105,7 @@ body {
   grid-template-rows: 1fr 2rem;
   grid-template-columns: auto 360px;
   -ms-grid-rows: 1fr 2rem;
-  -ms-grid-columns: auto 360px;
+  -ms-grid-columns: 1fr 360px;
   -ms-grid-row: 3;
 }
 
@@ -184,7 +185,8 @@ body {
   background-color: black;
   grid-row: 1 / span 2;
   grid-column: 2;
-  -ms-grid-row: 1 / span 2;
+  -ms-grid-row: 1;
+  -ms-grid-row-span: 2;
   -ms-grid-column: 2;
 }
 
