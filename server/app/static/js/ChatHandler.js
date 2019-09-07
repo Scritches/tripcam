@@ -105,10 +105,7 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
         var linkMatch = youtubeLink.match(linkRegex);
         if(linkMatch) {
             var id = linkMatch[2];
-            //this.youtubeContainer.innerHTML = "";
-            //this.youtubeContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
             this.ytPlayer.loadVideoById(id);
         }
     }
-    
 }

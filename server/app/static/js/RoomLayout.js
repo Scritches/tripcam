@@ -91,7 +91,8 @@ function RoomLayout(container, localDisplay) {
     }
 
     // Update the container's grid
-    this.container.setAttribute('style', `grid-template: repeat(${newFrameLayout.rows}, 1fr) / repeat(${newFrameLayout.cols}, 1fr)`)
+    var newStyle = "grid-template: repeat(" + newFrameLayout.rows.toString() + ", 1fr) / repeat(" + newFrameLayout.cols.toString() + ", 1fr)";
+    this.container.setAttribute('style', newStyle)
 
     this.currentFrameLayout = newFrameLayout;
     this.resized();
