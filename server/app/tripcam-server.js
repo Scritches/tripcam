@@ -1,5 +1,4 @@
 const readFileSync = require('fs').readFileSync,
-      http = require('http'),
       https = require('https'),
       async = require('async'),
       express = require('express'),
@@ -14,7 +13,6 @@ class TripcamServer {
     this.rooms = new Rooms(this.config.rooms);
 
     this.app = this.setupExpress();
-    this.http = this.setupHttp(this.app);
     this.https = this.setupHttps(this.config, this.app);
 
     this.configureWebRoutes(this.config, this.app);
@@ -28,10 +26,6 @@ class TripcamServer {
     app.set('view engine', 'pug');
 
     return app;
-  }
-
-  setupHttp(app) {
-    return http.createServer(app);
   }
 
   setupHttps(config, app) {
@@ -59,10 +53,10 @@ class TripcamServer {
     app.use(express.static(this.config.express.staticPath));
   }
 
-  setupWss(config, http) {
+  setupWss(config, https) {
     // Create and configure websocket server
     var wss = new websocket.server({
-      httpServer: http,
+      httpServer: https,
       autoAcceptConnections: false
     });
 
@@ -96,18 +90,10 @@ class TripcamServer {
   start() {
     this.https.listen(this.config.https.listenPort);
     console.log("Now listening for HTTPS connections on port " + this.config.https.listenPort);
-
-    this.http.listen(this.config.http.listenPort);
-    console.log("Now listening for HTTP connections on port " + this.config.http.listenPort);
   }
 
   stop(done) {
     async.parallel({
-      http: (function(cb) {
-        console.log("stopping http");
-        this.http.close(cb);
-      }).bind(this),
-
       https: (function(cb) {
         console.log("stopping https");
         this.https.close(cb);
