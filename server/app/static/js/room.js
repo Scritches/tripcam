@@ -6,6 +6,7 @@ var debug = false;
 var useCompression = false;
 var offlineImage = document.getElementById('offline');
 var currentVersion;
+var cameraWasOn = false;
 
 window.addEventListener('load', function() {
   var bodyElement = document.getElementsByTagName('body')[0];
@@ -60,6 +61,8 @@ window.addEventListener('load', function() {
       camera.turnCameraOff();
       roomServer.cameraOff();
     }
+
+    cameraWasOn = camera.cameraOn;
   });
 
   roomServer.on('connected', function(ver) {
@@ -71,6 +74,9 @@ window.addEventListener('load', function() {
     }
 
     bodyElement.style.backgroundColor = '#232f3b';
+    if (cameraWasOn) {
+      camera.turnCameraOn();
+    }
   });
   roomServer.on('disconnected', function() {
     bodyElement.style.backgroundColor = '#990000';
