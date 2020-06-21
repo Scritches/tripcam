@@ -57,9 +57,11 @@ window.addEventListener('load', function() {
   localDisplay.on('toggle-camera-clicked', function() {
     if (!camera.cameraOn) {
       camera.turnCameraOn();
+      cameraWasOn = true;
     } else {
       camera.turnCameraOff();
       roomServer.cameraOff();
+      cameraWasOn = false;
     }
   });
 
