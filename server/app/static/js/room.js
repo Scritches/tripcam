@@ -79,7 +79,6 @@ window.addEventListener('load', function() {
     }
   });
   roomServer.on('disconnected', function() {
-    cameraWasOn = camera.cameraOn;
     bodyElement.style.backgroundColor = '#990000';
     camera.turnCameraOff();
     roomLayout.renderFrames([]);
