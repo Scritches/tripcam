@@ -18,8 +18,8 @@ function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSu
     this.ytPlayer = new YT.Player(
         'youtube',
         {
-            width: 360,
-            height: 200
+          height:'100%',
+          width:'100%'
         }
     );
 
