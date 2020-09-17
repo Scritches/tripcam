@@ -99,7 +99,7 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
         isAction = true;
         chatText = " <i><b>" + fromName + "</b> " + chatText.substring(4) + "</i>";
     }
-    
+
     chatEntry.innerHTML = chatText;
     chatText = origText;
 

@@ -111,10 +111,10 @@ html, body, .grid {
 
 .room .chat_container {
   background-color:#19222b;
-  height:100%;
   grid-column: 1 / span 3;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  height:100%;
 }
 
 .room .chat {
@@ -123,12 +123,11 @@ html, body, .grid {
 .room .chat .allchat {
   overflow-x: wrap;
   overflow-y: scroll;
+  position:relative;
   font-size: 1rem;
   line-height: 1.5;
   color: #888888;
   height:90%;
-  position:relative;
-  bottom:1px;
 }
 
 .room .chat .allchat .chatline a {
@@ -175,8 +174,6 @@ html, body, .grid {
 .room .chat .enterchat input[type='submit'] {
   font-size: 1.25rem;
 }
-
-
 
 .room .chat .youtube {
   background-color: black;
