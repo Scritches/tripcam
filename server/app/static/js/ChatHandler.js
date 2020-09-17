@@ -77,6 +77,8 @@ ChatHandler.prototype.changeName = function(newName) {
 }
 
 ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
+    var scrolledToBottom = this.chatContainer.scrollTop == this.chatContainer.scrollHeight - this.chatContainer.clientHeight;
+
     var origText = chatText;
     var chatLine = document.createElement('div');
     chatLine.className = 'chatline';
@@ -93,6 +95,7 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
     chatEntry.className = 'chatentry';
     chatEntry.textContent = chatText;
     chatText = urlify(chatEntry.innerHTML);
+
     
     var isAction = false;
     if(chatText.startsWith("/me ")) {
@@ -109,7 +112,9 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
 
     this.chatContainer.appendChild(chatLine);
 
-    this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+    if(scrolledToBottom) {
+      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+    }
 
     if(chatText.startsWith('!play ')) {
         var youtubeLink = chatText.substring(6);
