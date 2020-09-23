@@ -23,6 +23,12 @@ function ChatHandler(roomServer, roomLayout, chatContainer, userChat, userChatSu
         }
     );
 
+    this.ytEl = document.getElementById('youtube');
+    this.videoContainer = this.ytEl.parentElement;
+    
+    this.videoEl = document.getElementById("video");
+    this.videoEl.hidden = true;
+
     var wasConnected = false;
     this.roomServer.on('connected', function() {
         this.displayChat("TripCam", "../images/video-camera-icon.png", "You are connected to the server.");
@@ -112,6 +118,10 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
     this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
 
     if(chatText.startsWith('!play ')) {
+        this.videoEl.pause();
+        this.videoEl.hidden = true;
+        this.ytEl.hidden = false;
+
         var youtubeLink = chatText.substring(6);
         var linkRegex = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         var linkMatch = youtubeLink.match(linkRegex);
@@ -119,5 +129,15 @@ ChatHandler.prototype.displayChat = function(fromName, fromImage, chatText) {
             var id = linkMatch[2];
             this.ytPlayer.loadVideoById(id);
         }
+    }
+
+    if(chatText.startsWith('!url ')) {
+        this.ytPlayer.stopVideo();
+        this.ytEl.hidden = true;
+        this.videoEl.hidden = false;
+
+        var url = chatText.substring(5);
+        this.videoEl.autoplay = true;
+        this.videoEl.src = url;
     }
 }
