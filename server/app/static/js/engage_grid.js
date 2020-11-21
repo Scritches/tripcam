@@ -8,6 +8,7 @@ var fixChatHeight = () => {
   document.getElementById("allchat").scrollTop = document.getElementById(
     "allchat"
   ).scrollHeight;
+  window.roomLayout.resized();
 };
 
 window.Split({
