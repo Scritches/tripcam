@@ -57,8 +57,12 @@ class Room extends EventEmitter {
     this.config = config;
 
     this.clients = { };
+    this.orderedClients = [];
 
     this.lastActivity = (new Date()).getTime();
+
+    // Holds the client ID of the last person who used !play
+    this.lastPlayed = false;
 
     this.activityInterval = setInterval((function() {
       if(!this.isStillActive) {
@@ -111,11 +115,15 @@ class Room extends EventEmitter {
       clientVersion: '0.88'
      });
     this.clients[client.clientId] = client;
+    this.orderedClients.push(client.clientId);
   }
 
   handleDisconnect(clientId) {
     if (this.clients[clientId]) {
       delete this.clients[clientId];
+
+      // got to love pure JS...
+      this.orderedClients.splice(this.orderedClients.indexOf(clientId), 1); 
     }
   }
 
@@ -126,8 +134,29 @@ class Room extends EventEmitter {
       username: username,
       text: text
     }, clientId);
-  }
 
+    if(text.indexOf('!play') == 0) {
+      this.lastPlayed = clientId;
+    }
+
+    if(text == '!order') {
+      var uNames = this.orderedClients.map((a) => {
+        return this.clients[a].username;
+      });
+
+      var out = 'Play order: ' + uNames.join(', ')
+      if(this.lastPlayed) {
+       out += '. Last played: ' + this.clients[this.lastPlayed].username;
+      }
+
+      this.broadcast({
+        messageType: 'chat',
+        clientId: 'SERVER',
+        username: username,
+        text: out
+      }, 'SERVER');
+    }
+  }
 
   emitFrames() {
     for(var clientId in this.clients) {

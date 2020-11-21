@@ -99,7 +99,8 @@ VideoDisplay.prototype.updateFrame = function(frame) {
 }
 
 VideoDisplay.prototype.resize = function(width, height, row, col) {
-  var newStyle = "width: " + width.toString() + "px; height:" + height.toString() + "px;";
+  //var newStyle = "width: " + width.toString() + "px; height:" + height.toString() + "px;";
+  var newStyle = "width:auto;max-width:"+width+"px;max-height:"+height+"px;";//" min-height:" + (height / 2).toString() + "px;";
   if(isIE11) {
     var vdStyle = "-ms-grid-row: " + row + " ; -ms-grid-column: " + col + ";";
     this.frame_el.setAttribute('style', vdStyle);

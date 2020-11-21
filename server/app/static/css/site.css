@@ -8,22 +8,33 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background-color: #232f3b;
   color: #c6c0d1;
+}
 
+html,
+body,
+.grid {
+  height: 100%;
+  padding: 0;
+}
+
+.vertical-gutter {
+  grid-area: 1 / 2 / 4 / 2;
+  border: solid 1px red;
+}
+
+.horizontal-gutter {
+  grid-area: 2 / 1 / 2 / 4;
+  border: solid 1px red;
 }
 
 .room {
-  overflow: hidden;
   height: 100vh;
-  width: 100vw;
   display: grid;
-  display: -ms-grid;
-  grid-template-rows: 2.6rem 1fr 200px;
-  -ms-grid-rows: 2.6rem 1fr 200px;
-  -ms-grid-columns: 1fr;
+  grid-template-columns: 1fr 0px 1fr;
+  grid-template-rows: 1fr 10px 1fr;
 }
 
 .room .controls {
-  -ms-grid-row: 1;
 }
 
 .room .controls .roomname {
@@ -31,20 +42,22 @@ body {
   color: #888888;
 }
 
+.channel_container {
+  grid-column: 1 / span 3;
+  height: 100%;
+}
+
 .room .channel {
   background-color: black;
   display: grid;
-  display: -ms-grid;
-  grid-template: 1fr / 1fr;
-  -ms-grid-rows: 1fr;
-  -ms-grid-columns: 1fr;
-  -ms-grid-row: 2;
+  height: 100%;
+  width: 100%;
 }
 
 .room .channel .frame {
   border: 1px solid #444;
-  position:relative;
-  overflow: hidden;
+  position: relative;
+  height: 100%;
 }
 
 .room .channel .frame .username:hover {
@@ -63,7 +76,7 @@ body {
   right: 3px;
   width: 32px;
   height: 32px;
-  background-image: url('../images/video-camera-icon.png');
+  background-image: url("../images/video-camera-icon.png");
 }
 
 .room .channel .frame .videoview {
@@ -72,17 +85,17 @@ body {
   left: 0px;
   width: 100%;
   height: 100%;
-  background-color:black;
+  background-color: black;
 }
 
 .room .channel .frame .videoview img {
-  display:block;
+  display: block;
   position: absolute;
   top: 50%;
   left: 50%;
   width: 100%;
   height: 100%;
-  transform: translate(-50%, -50%)
+  transform: translate(-50%, -50%);
 }
 
 .room .channel .frame .username {
@@ -93,32 +106,29 @@ body {
   color: white;
   text-align: center;
   font-size: 1.5rem;
-  opacity: .75;
+  opacity: 0.75;
   text-shadow: 1px 1px 10px black, -1px -1px 10px black;
 }
 
-.room .chat {
-  background-color:#19222b;
+.room .chat_container {
+  background-color: #19222b;
+  grid-column: 1 / span 3;
   display: grid;
-  display: -ms-grid;
+  grid-template-columns: 1fr 1fr;
   height: 100%;
-  grid-template-rows: 1fr 2rem;
-  grid-template-columns: auto 360px;
-  -ms-grid-rows: 1fr 2rem;
-  -ms-grid-columns: 1fr 360px;
-  -ms-grid-row: 3;
+}
+
+.room .chat {
 }
 
 .room .chat .allchat {
   overflow-x: wrap;
   overflow-y: scroll;
+  position: relative;
   font-size: 1rem;
   line-height: 1.5;
   color: #888888;
-  grid-column: 1;
-  grid-row: 1;
-  -ms-grid-column: 1;
-  -ms-grid-row: 1;
+  height: 90%;
 }
 
 .room .chat .allchat .chatline a {
@@ -138,11 +148,11 @@ body {
 }
 
 .room .chat .allchat .chatline .chatname:before {
-  content: ' ';
+  content: " ";
 }
 
 .room .chat .allchat .chatline .chatname:after {
-  content: ' -- ';
+  content: " -- ";
 }
 
 .room .chat .allchat .chatline:nth-child(even) {
@@ -154,40 +164,23 @@ body {
   height: 36px;
 }
 
-
-
-
-
 .room .chat .enterchat {
-  display: grid;
-  grid-template-columns: 90% 1fr;
-  grid-row: 2;
-  grid-column: 1;
-  display: -ms-grid;
-  -ms-grid-columns: 90% 1fr;
-  -ms-grid-row: 2;
-  -ms-grid-column: 1;
 }
 
-.room .chat .enterchat input[type='text'] {
+.room .chat .enterchat input[type="text"] {
   font-size: 1.25rem;
-  -ms-grid-column:1;
+  width: 90%;
 }
 
-.room .chat .enterchat input[type='submit'] {
+.room .chat .enterchat input[type="submit"] {
   font-size: 1.25rem;
-  -ms-grid-column:2;
+  width: 10%;
 }
-
-
 
 .room .chat .youtube {
   background-color: black;
-  grid-row: 1 / span 2;
-  grid-column: 2;
-  -ms-grid-row: 1;
-  -ms-grid-row-span: 2;
-  -ms-grid-column: 2;
+  width: 100%;
+  height: 100%;
 }
 
 .room .chat .youtube iframe {
@@ -195,25 +188,24 @@ body {
   height: 100%;
 }
 
-
 .modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 50%;
-    color: black;
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
+  color: black;
 }

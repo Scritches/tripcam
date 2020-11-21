@@ -1,22 +1,24 @@
 extends layout
 
 block content
-  img#offline(src='/images/offline.png', style='display:none')
+  img#offline(src='/images/offline.png', style='display:none;')
 
   .room
-    .controls
-      span.roomname #{roomid}
-    
-    .channel#channel
+    .channel_container
+      .channel#channel
 
-    .chat
-      .allchat#allchat
-      .enterchat
-        input#userchat(type='text')
-        input#userchatsubmit(type='submit', text='Submit')
+    .chat_container#chat_container
+      .chat
+        .allchat#allchat
+        .enterchat
+          input#userchat(type='text')
+          input#userchatsubmit(type='submit', text='Submit')
       .youtube
-        video#video(width=360, height=200, type="video/mp4", controls="true")
+        video#video(type="video/mp4", controls="true")
         div#youtube
+
+    .horizontal-gutter
+
   
   div#nameSelectModal.modal
     .modal-content
@@ -33,6 +35,7 @@ block content
   script roomid = "#{roomid}";
   script serverAddress = "#{serverAddress}";
   script(src='/js/preload.js')
+  script(src='/js/engage_grid.js')
   script(src='/js/VideoDisplay.js')
   script(src='/js/RoomLayout.js')
   script(src='/js/Camera.js')
