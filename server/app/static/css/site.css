@@ -132,6 +132,8 @@ body,
 }
 
 .room .chat .allchat .chatline a {
+  word-break: break-all;
+  word-wrap: break-word;
   color: #4aa3fc;
 }
 
