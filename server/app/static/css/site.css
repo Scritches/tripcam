@@ -34,9 +34,6 @@ body,
   grid-template-rows: 1fr 10px 1fr;
 }
 
-.room .controls {
-}
-
 .room .controls .roomname {
   font-size: 2.4rem;
   color: #888888;
@@ -118,9 +115,6 @@ body,
   height: 100%;
 }
 
-.room .chat {
-}
-
 .room .chat .allchat {
   overflow-x: wrap;
   overflow-y: scroll;
@@ -164,9 +158,6 @@ body,
 .room .chat .allchat .chatline img {
   width: 48px;
   height: 36px;
-}
-
-.room .chat .enterchat {
 }
 
 .room .chat .enterchat input[type="text"] {

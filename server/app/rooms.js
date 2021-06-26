@@ -1,4 +1,4 @@
-const CLIENT_VERSION = "0.89";
+const CLIENT_VERSION = "0.90";
 
 const EventEmitter = require("events").EventEmitter,
   _ = require("lodash")._,
