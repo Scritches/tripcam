@@ -1,7 +1,7 @@
 var camSize = { width: 320, height: 240 };
 var desiredFps = 20;
 var delayPerFrame = 1000 / desiredFps;
-var cameraQuality = 0.75;
+var cameraQuality = 0.5;
 var debug = false;
 var useCompression = false;
 var offlineImage = document.getElementById("offline");
